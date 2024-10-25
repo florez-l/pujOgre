@@ -3,12 +3,19 @@
 // =========================================================================
 
 #include <PUJ_Ogre/DotXXSceneLoader.h>
-#include <PUJ_Ogre/ParametricFunction.h>
+#include <PUJ_Ogre/vtk/ParametricFunction.h>
 #include <vtkFloatArray.h>
 #include <vtkParametricFunctionSource.h>
 #include <vtkPointData.h>
-#include <vtkPolyDataNormals.h>
 #include <vtkNew.h>
+
+
+
+
+#include <vtkCellData.h>
+
+
+
 
 #include <Ogre.h>
 #include <pugixml.hpp>
@@ -37,17 +44,11 @@ _parametric2( pugi::xml_node& XMLNode, Ogre::SceneNode* p )
     n = this->m_AttachNode->createChildSceneNode( "unnamed_parametric2" );
 
   // Create model
-  vtkNew< PUJ_Ogre::ParametricFunction > model;
+  vtkNew< PUJ_Ogre::vtk::ParametricFunction > model;
   model->SetParameters( params.str( ).c_str( ) );
-  model->SetXExpression( x.c_str( ) );
-  model->SetYExpression( y.c_str( ) );
-  model->SetZExpression( z.c_str( ) );
-
-  // A dummy evaluation to update ranges and openness
-  double uvw[ 3 ] = { 0 };
-  double Pt[ 3 ] = { 0 };
-  double Duvw[ 9 ] = { 0 };
-  model->Evaluate( uvw, Pt, Duvw );
+  model->SetXExpr( x.c_str( ) );
+  model->SetYExpr( y.c_str( ) );
+  model->SetZExpr( z.c_str( ) );
 
   // Sample the model
   vtkNew< vtkParametricFunctionSource > src;
@@ -55,21 +56,16 @@ _parametric2( pugi::xml_node& XMLNode, Ogre::SceneNode* p )
   src->SetUResolution( usamples );
   src->SetVResolution( vsamples );
   src->SetWResolution( 1 );
-
-  vtkNew< vtkPolyDataNormals > normalFilter;
-  normalFilter->SetInputConnection( src->GetOutputPort( ) );
-  normalFilter->ComputePointNormalsOn( );
-  normalFilter->ComputeCellNormalsOff( );
-  normalFilter->Update( );
+  src->GenerateNormalsOn( );
+  src->GenerateTextureCoordinatesOn( );
+  src->Update( );
 
   // Create manual object
-  auto points = normalFilter->GetOutput( )->GetPoints( );
-  auto normals
-    =
-    vtkArrayDownCast< vtkFloatArray >(
-      normalFilter->GetOutput( )->GetPointData( )->GetNormals( )
-      );
-  auto polys = normalFilter->GetOutput( )->GetPolys( );
+  auto pdata = src->GetOutput( );
+  auto points = pdata->GetPoints( );
+  auto normals = pdata->GetPointData( )->GetNormals( );
+  auto tcoords = pdata->GetPointData( )->GetAbstractArray( "Textures" );
+  auto polys = pdata->GetPolys( );
 
   Ogre::ManualObject* man
     =
@@ -82,10 +78,11 @@ _parametric2( pugi::xml_node& XMLNode, Ogre::SceneNode* p )
   {
     double* p = points->GetPoint( i );
     double* n = normals->GetTuple( i );
+    double* t = tcoords->GetTuple( i );
 
     man->position( p[ 0 ], p[ 1 ], p[ 2 ] );
     man->normal( n[ 0 ], n[ 1 ], n[ 2 ] );
-    man->textureCoord( 0, 0 ); // TODO
+    man->textureCoord( t[ 0 ], t[ 1 ] );
   } // end for
 
   vtkNew< vtkIdList > ids;

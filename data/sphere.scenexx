@@ -9,8 +9,8 @@
            vrange="0 pi open"
            sampling="20 20"
            >
-          <x function="cos(u)sin(v)"/>
-          <y function="sin(u)sin(v)"/>
+          <x function="cos(u)*sin(v)"/>
+          <y function="sin(u)*sin(v)"/>
           <z function="cos(v)"/>
         </parametric2>
       </entity>
