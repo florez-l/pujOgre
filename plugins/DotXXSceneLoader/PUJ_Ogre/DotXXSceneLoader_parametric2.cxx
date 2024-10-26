@@ -3,21 +3,16 @@
 // =========================================================================
 
 #include <PUJ_Ogre/DotXXSceneLoader.h>
+
 #include <PUJ_Ogre/vtk/ParametricFunction.h>
+
 #include <vtkFloatArray.h>
 #include <vtkParametricFunctionSource.h>
 #include <vtkPointData.h>
 #include <vtkNew.h>
 
-
-
-
-#include <vtkCellData.h>
-
-
-
-
 #include <Ogre.h>
+
 #include <pugixml.hpp>
 
 // -------------------------------------------------------------------------
@@ -64,7 +59,11 @@ _parametric2( pugi::xml_node& XMLNode, Ogre::SceneNode* p )
   auto pdata = src->GetOutput( );
   auto points = pdata->GetPoints( );
   auto normals = pdata->GetPointData( )->GetNormals( );
-  auto tcoords = pdata->GetPointData( )->GetAbstractArray( "Textures" );
+  auto tcoords
+    =
+    vtkFloatArray::SafeDownCast(
+      pdata->GetPointData( )->GetAbstractArray( "Textures" )
+      );
   auto polys = pdata->GetPolys( );
 
   Ogre::ManualObject* man

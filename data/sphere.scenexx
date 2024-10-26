@@ -6,8 +6,8 @@
         <parametric2
            material="default"
            urange="0 2pi closed"
-           vrange="0 pi open"
-           sampling="20 20"
+           vrange="0  pi open"
+           sampling="200 200"
            >
           <x function="cos(u)*sin(v)"/>
           <y function="sin(u)*sin(v)"/>
@@ -16,9 +16,9 @@
       </entity>
     </node>
     <node name="myLight">
-      <light>
+      <light type="point">
         <diffuse  colour="0 1 0 1"/>
-        <specular colour="0 0 1 1"/>
+        <specular colour="0 1 0 1"/>
       </light>
       <position point="2 2 2"/>
     </node>
