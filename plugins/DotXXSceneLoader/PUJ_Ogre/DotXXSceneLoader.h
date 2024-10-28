@@ -55,6 +55,7 @@ namespace PUJ_Ogre
     void _light( pugi::xml_node& XMLNode,  Ogre::SceneNode* p = 0 );
 
     void _parametric2( pugi::xml_node& XMLNode, Ogre::SceneNode* p = 0 );
+    void _vtk( pugi::xml_node& XMLNode, Ogre::SceneNode* p = 0 );
 
     // XML-related helpers
     static Ogre::String _attrib(

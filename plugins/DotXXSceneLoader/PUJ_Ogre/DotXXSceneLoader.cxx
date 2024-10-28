@@ -2,10 +2,6 @@
 // @author Leonardo Florez-Valencia (florez-l@javeriana.edu.co)
 // =========================================================================
 
-
-#include <iostream>
-
-
 #include <PUJ_Ogre/DotXXSceneLoader.h>
 #include <Ogre.h>
 #include <pugixml.hpp>
@@ -218,6 +214,8 @@ _entity( pugi::xml_node& XMLNode, Ogre::SceneNode* p )
 {
   if( auto e = XMLNode.child( "parametric2" ) )
     this->_parametric2( e, p );
+  if( auto e = XMLNode.child( "vtk" ) )
+    this->_vtk( e, p );
 }
 
 // -------------------------------------------------------------------------

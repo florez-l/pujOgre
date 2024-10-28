@@ -19,6 +19,7 @@ set(
   _src
   PUJ_Ogre/DotXXSceneLoader.cxx
   PUJ_Ogre/DotXXSceneLoader_parametric2.cxx
+  PUJ_Ogre/DotXXSceneLoader_vtk.cxx
   PUJ_Ogre/third_party/ev3/expression.cxx
   PUJ_Ogre/third_party/ev3/operand.cxx
   PUJ_Ogre/third_party/ev3/parser.cxx

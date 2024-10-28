@@ -1,4 +1,4 @@
-material default
+material floor
 {
   transparency_casts_shadows on
   receive_shadows on
@@ -12,9 +12,34 @@ material default
       cull_hardware none
       cull_software none
 
-      ambient 1 1 1 1
-      diffuse 1 1 1 1
-      emissive 1 1 1 1
+      ambient 0 1 1 1
+      diffuse 0 1 1 1
+      emissive 0 1 1 1
+
+      // ... leave what you have here
+
+      polygon_mode solid // sets to render the object as a solid
+    }
+  }
+}
+
+material sphere
+{
+  transparency_casts_shadows on
+  receive_shadows on
+  technique
+  {
+    pass solidPass
+    {
+      // sets your object's colour, texture etc.
+      lighting on
+
+      cull_hardware none
+      cull_software none
+
+      ambient 1 0 1 1
+      diffuse 1 0 1 1
+      emissive 1 0 1 1
 
       // ... leave what you have here
 

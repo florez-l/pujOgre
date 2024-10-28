@@ -4,7 +4,7 @@
     <node name="sphere">
       <entity>
         <parametric2
-           material="default"
+           material="sphere"
            urange="0 2pi closed"
            vrange="0  pi open"
            sampling="200 200"
@@ -13,6 +13,11 @@
           <y function="sin(u)*sin(v)"/>
           <z function="cos(v)"/>
         </parametric2>
+      </entity>
+    </node>
+    <node name="floor">
+      <entity>
+        <vtk filename="floor_00.obj" material="floor"/>
       </entity>
     </node>
     <node name="myLight">
@@ -24,7 +29,7 @@
     </node>
     <node name="myCamera">
       <camera>
-        <clipping near="1e-3" far="100"/>
+        <clipping near="1e-3" far="500"/>
       </camera>
       <position point="3 3 3"/>
       <lookAt   point="0 0 0"/>
