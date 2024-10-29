@@ -80,7 +80,7 @@ namespace PUJ_Ogre
       );
     static Ogre::Quaternion _quaternion(
       const pugi::xml_node& XMLNode, const Ogre::String& attrib,
-      const Ogre::Quaternion& defaultValue = Ogre::Quaternion( 0, 0, 0, 1 )
+      const Ogre::Quaternion& defaultValue = Ogre::Quaternion( 1, 0, 0, 0 )
       );
     
     /* TODO

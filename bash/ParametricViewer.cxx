@@ -186,6 +186,7 @@ namespace PUJ_Ogre
     virtual void _loadScene( )
       {
         auto* root = this->m_SceneMgr->getRootSceneNode( );
+        root->getUserObjectBindings( ).setUserAny( "DynamicWorld", Ogre::Any( &( this->m_LELELELE ) ) );
         root->loadChildren( "sphere.scenexx" );
 
         auto* cam = this->m_SceneMgr->getCameras( ).begin( )->second;
@@ -203,6 +204,8 @@ namespace PUJ_Ogre
     std::string         m_Resources;
     std::string         m_Path;
     Ogre::SceneManager* m_SceneMgr { nullptr };
+
+    std::string m_LELELELE { "estoy por aca" };
 
     /* TODO
        bool                  m_RealResourcesFile;

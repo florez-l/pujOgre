@@ -1,49 +1,61 @@
 material floor
 {
-  transparency_casts_shadows on
-  receive_shadows on
-  technique
-  {
-    pass solidPass
-    {
-      // sets your object's colour, texture etc.
-      lighting on
+    receive_shadows on
+    technique {
+        pass {
+            lighting on
+            ambient 0.800000011920929 0.800000011920929 0.800000011920929 1.0
+            diffuse 0.6400000190734865 0.6400000190734865 0.6400000190734865 1.0
+            specular 0.5 0.5 0.5 1.0 25.0
+            emissive 0.08000000238418581 0.08000000238418581 0.08000000238418581 1.0
+            
+            alpha_to_coverage off 
+            colour_write on 
+            cull_hardware none
+            depth_check on 
+            depth_func less_equal 
+            depth_write on 
+            illumination_stage  
+            light_clip_planes off 
+            light_scissor off 
+            normalise_normals off 
+            polygon_mode solid 
+            scene_blend one zero 
+            scene_blend_op add 
+            shading gouraud 
+            transparent_sorting on 
 
-      cull_hardware none
-      cull_software none
-
-      ambient 0 1 1 1
-      diffuse 0 1 1 1
-      emissive 0 1 1 1
-
-      // ... leave what you have here
-
-      polygon_mode solid // sets to render the object as a solid
+        }
     }
-  }
 }
 
 material sphere
 {
-  transparency_casts_shadows on
   receive_shadows on
   technique
   {
-    pass solidPass
+    pass
     {
-      // sets your object's colour, texture etc.
       lighting on
-
+      ambient 0.0008299254695884883 0.4200230836868286 0.006390804890543222 1.0
+      diffuse 0.0006639403855642732 0.33601847195652823 0.005112643988618909 1.0
+      specular 0.0037538204342126846 0.5 0.011882592923939228 1.0 25.0
+      emissive 8.299254819553415e-05 0.04200230899456603 0.0006390804985773636 1.0
+      alpha_to_coverage off 
+      colour_write on 
       cull_hardware none
-      cull_software none
-
-      ambient 1 0 1 1
-      diffuse 1 0 1 1
-      emissive 1 0 1 1
-
-      // ... leave what you have here
-
-      polygon_mode solid // sets to render the object as a solid
+      depth_check on 
+      depth_func less_equal 
+      depth_write on 
+      illumination_stage  
+      light_clip_planes off 
+      light_scissor off 
+      normalise_normals off 
+      polygon_mode solid 
+      scene_blend one zero 
+      scene_blend_op add 
+      shading gouraud 
+      transparent_sorting on 
     }
   }
 }

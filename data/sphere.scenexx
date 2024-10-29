@@ -1,5 +1,5 @@
 <scenexx formatVersion="0.0" physics="on">
-  <ambientLight colour="1 1 1 1"/>
+  <ambientLight colour="0.9 0.9 0.9 1"/>
   <nodes>
     <node name="sphere">
       <entity>
@@ -14,24 +14,35 @@
           <z function="cos(v)"/>
         </parametric2>
       </entity>
+      <position point="0 50 0" />
     </node>
     <node name="floor">
       <entity>
         <vtk filename="floor_00.obj" material="floor"/>
       </entity>
     </node>
-    <node name="myLight">
+    <node name="Sun">
       <light type="point">
-        <diffuse  colour="0 1 0 1"/>
-        <specular colour="0 1 0 1"/>
+        <diffuse  colour="1 1 1 1"/>
+        <specular colour="1 1 1 1"/>
+        <attenuation constant="1" linear="4e-2" quadratic="0" range="5000"/>
       </light>
-      <position point="2 2 2"/>
+      <position point="0 300 0"/>
+    </node>
+    <node name="MainLight">
+      <light type="spot">
+        <diffuse colour="1 1 1 1"/>
+        <range falloff="1.0" inner="0.66" outer="0.78" />
+        <attenuation constant="1.0" linear="4e-2" quadratic="0" range="5000" />
+      </light>
+      <position point="0 200 0" />
+      <orientation quaternion="0.607501 -0.732324 0.163775 0.260427" />
     </node>
     <node name="myCamera">
-      <camera>
-        <clipping near="1e-3" far="500"/>
+      <camera fovy="45">
+        <clipping near="1e-3" far="5e3"/>
       </camera>
-      <position point="3 3 3"/>
+      <position point="200 200 -200"/>
       <lookAt   point="0 0 0"/>
     </node>
   </nodes>
