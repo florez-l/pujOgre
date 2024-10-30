@@ -105,6 +105,9 @@ _configureCamera( )
     this->m_CamMan->setFixedYaw( true );
     this->m_CamMan->setStyle( OgreBites::CS_FREELOOK );
     this->addInputListener( this->m_CamMan );
+
+    this->m_Cancha->_updateBounds( );
+    Ogre::AxisAlignedBox bbox = this->m_Cancha->_getWorldAABB( );
   } // end if
 }
 
