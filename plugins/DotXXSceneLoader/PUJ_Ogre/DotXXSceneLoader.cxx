@@ -187,6 +187,8 @@ _entity( pugi::xml_node& XMLNode, Ogre::SceneNode* p )
   Ogre::String collider = Self::_attrib( XMLNode, "collider", "bbox" );
 
   Ogre::Entity* ent = nullptr;
+  if( auto e = XMLNode.child( "mesh" ) )
+    ent = this->_mesh( e, p );
   if( auto e = XMLNode.child( "parametric2" ) )
     ent = this->_parametric2( e, p );
   if( auto e = XMLNode.child( "vtk" ) )
@@ -298,6 +300,34 @@ _light( pugi::xml_node& XMLNode, Ogre::SceneNode* p )
      processLightSourceSize(pElement, l);
      }
   */
+}
+
+// -------------------------------------------------------------------------
+Ogre::Entity* PUJ_Ogre::DotXXSceneLoader::
+_mesh( pugi::xml_node& XMLNode, Ogre::SceneNode* p )
+{
+  Ogre::String filename = Self::_attrib( XMLNode, "filename" );
+  Ogre::String material = Self::_attrib( XMLNode, "material" );
+  bool castShadows = ( Self::_attrib( XMLNode, "castShadows", "on" ) == "on" );
+  bool visible = ( Self::_attrib( XMLNode, "visible", "on" ) == "on" );
+
+  // Node
+  Ogre::SceneNode* n = p;
+  if( n == 0 )
+    n = this->m_AttachNode->createChildSceneNode( "unnamed_mesh" );
+
+  // Load mesh
+  Ogre::Entity* ent
+    =
+    this->m_SceneMgr->
+    createEntity( n->getName( ) + "_mesh", filename, this->m_sGroupName );
+  ent->setCastShadows( castShadows );
+  ent->setVisible( visible );
+  if( material != "" )
+    ent->setMaterialName( material );
+  n->attachObject( ent );
+
+  return( ent );
 }
 
 // -------------------------------------------------------------------------

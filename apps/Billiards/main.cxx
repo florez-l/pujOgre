@@ -12,15 +12,15 @@
 
 /**
  */
-class PUJ_Ogre_Tejo_App
+class PUJ_Ogre_Billiards_App
   : public PUJ_Ogre::ApplicationWithBullet
 {
 public:
   using Superclass = PUJ_Ogre::ApplicationWithBullet;
 
 public:
-  PUJ_Ogre_Tejo_App( const std::string& app_exec );
-  virtual ~PUJ_Ogre_Tejo_App( ) override;
+  PUJ_Ogre_Billiards_App( const std::string& app_exec );
+  virtual ~PUJ_Ogre_Billiards_App( ) override;
 
   virtual bool keyPressed( const OgreBites::KeyboardEvent& evt ) override;
   virtual bool frameStarted( const Ogre::FrameEvent& evt ) override;
@@ -32,74 +32,51 @@ protected:
 protected:
   bool                  m_Simulating { false };
   OgreBites::CameraMan* m_CamMan;
-  Ogre::SceneNode*      m_Cancha;
-  std::pair< Ogre::SceneNode*, btRigidBody* > m_Tejo;
 };
 
 // -------------------------------------------------------------------------
 int main( int argc, char** argv )
 {
-  PUJ_Ogre_Tejo_App app( argv[ 0 ] );
+  PUJ_Ogre_Billiards_App app( argv[ 0 ] );
   app.go( );
   return( EXIT_SUCCESS );
 }
 
 // -------------------------------------------------------------------------
-PUJ_Ogre_Tejo_App::
-PUJ_Ogre_Tejo_App( const std::string& app_exec )
-  : Superclass( app_exec, "PUJ_Ogre_Tejo_resources.cfg" )
+PUJ_Ogre_Billiards_App::
+PUJ_Ogre_Billiards_App( const std::string& app_exec )
+  : Superclass( app_exec, "PUJ_Ogre_Billiards_resources.cfg" )
 {
 }
 
 // -------------------------------------------------------------------------
-PUJ_Ogre_Tejo_App::
-~PUJ_Ogre_Tejo_App( )
+PUJ_Ogre_Billiards_App::
+~PUJ_Ogre_Billiards_App( )
 {
 }
 
 // -------------------------------------------------------------------------
-bool PUJ_Ogre_Tejo_App::
+bool PUJ_Ogre_Billiards_App::
 keyPressed( const OgreBites::KeyboardEvent& evt )
 {
   if( evt.keysym.sym == OgreBites::SDLK_ESCAPE )
     this->getRoot( )->queueEndRendering( );
   if( evt.keysym.sym == 'g' || evt.keysym.sym == 'G' )
-  {
     this->m_Simulating = true;
-
-    Ogre::Vector3 pos = this->m_Tejo.first->getPosition( );
-    Ogre::Vector3 dir
-      =
-      this->m_CamMan->getCamera( )->getLocalAxes( ).GetColumn( 2 );
-
-    auto tr = this->m_Tejo.second->getWorldTransform( );
-    tr.setOrigin( btVector3( pos[ 0 ], pos[ 1 ], pos[ 2 ] ) );
-    this->m_Tejo.second->setWorldTransform( tr );
-    this->m_Tejo.second->setLinearVelocity(
-      btVector3( dir[ 0 ], dir[ 1 ], dir[ 2 ] ) * ( -15 )
-      );
-  } // end if
   return( true );
 }
 
 // -------------------------------------------------------------------------
-bool PUJ_Ogre_Tejo_App::
+bool PUJ_Ogre_Billiards_App::
 frameStarted( const Ogre::FrameEvent& evt )
 {
-  if( !( this->m_Simulating ) )
-  {
-    Ogre::SceneNode* cam = this->m_CamMan->getCamera( );
-    Ogre::Vector3 dir = cam->getLocalAxes( ).GetColumn( 2 );
-    Ogre::Vector3 pos = cam->getPosition( ) - ( 2 * dir );
-    this->m_Tejo.first->setPosition( pos );
-  }
-  else
+  if( this->m_Simulating )
     this->_simulateOneStep( evt.timeSinceLastFrame, 10 );
   return( this->Superclass::frameStarted( evt ) );
 }
 
 // -------------------------------------------------------------------------
-void PUJ_Ogre_Tejo_App::
+void PUJ_Ogre_Billiards_App::
 _configureCamera( )
 {
   this->Superclass::_configureCamera( );
@@ -108,33 +85,16 @@ _configureCamera( )
   if( cam != nullptr )
   {
     this->m_CamMan = new OgreBites::CameraMan( cam->getParentSceneNode( ) );
-    this->m_CamMan->setTopSpeed( 1.2 );
-    this->m_CamMan->setFixedYaw( true );
     this->m_CamMan->setStyle( OgreBites::CS_FREELOOK );
     this->addInputListener( this->m_CamMan );
-
-    this->m_Cancha->_updateBounds( );
-    Ogre::AxisAlignedBox bbox = this->m_Cancha->_getWorldAABB( );
-    cam->getParentSceneNode( )->setPosition( bbox.getCenter( ) );
   } // end if
 }
 
 // -------------------------------------------------------------------------
-void PUJ_Ogre_Tejo_App::
+void PUJ_Ogre_Billiards_App::
 _loadScene( )
 {
-  this->m_SceneMgr->getRootSceneNode( )->loadChildren( "tejo.scenexx" );
-  this->m_Cancha = this->m_SceneMgr->getSceneNode( "cancha" );
-
-  auto tejo_node = this->m_SceneMgr->getSceneNode( "tejo" );
-  auto tejo_ent = tejo_node->getAttachedObject( 0 );
-  auto tejo_bind
-    =
-    tejo_ent->getUserObjectBindings( ).getUserAny( "btRigidBody" );
-  btRigidBody* tejo_body = nullptr;
-  if( tejo_bind.has_value( ) )
-    tejo_body = Ogre::any_cast< btRigidBody* >( tejo_bind );
-  this->m_Tejo = std::make_pair( tejo_node, tejo_body );
+  this->m_SceneMgr->getRootSceneNode( )->loadChildren( "billiards.scenexx" );
 }
 
 // eof - $RCSfile$

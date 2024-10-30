@@ -55,6 +55,7 @@ namespace PUJ_Ogre
     void _camera( pugi::xml_node& XMLNode, Ogre::SceneNode* p = 0 );
     void _light( pugi::xml_node& XMLNode,  Ogre::SceneNode* p = 0 );
 
+    Ogre::Entity* _mesh( pugi::xml_node& XMLNode, Ogre::SceneNode* p = 0 );
     Ogre::Entity* _parametric2(
       pugi::xml_node& XMLNode, Ogre::SceneNode* p = 0
       );

@@ -2,12 +2,9 @@
 ## @author Leonardo Florez-Valencia (florez-l@javeriana.edu.co)
 ## =========================================================================
 
-include_directories(
-  ${BULLET_INCLUDE_DIRS}
-  ${PROJECT_BINARY_DIR}/lib
-  ${PROJECT_SOURCE_DIR}/lib
-  )
+add_executable(PUJ_Ogre_Billiards main.cxx)
+target_link_libraries(PUJ_Ogre_Billiards PUJ_Ogre)
 
-subdirs(Billiards Tejo)
+subdirs(resources)
 
 ## eof - CMakeLists.txt

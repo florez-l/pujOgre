@@ -1,0 +1,72 @@
+<scenexx formatVersion="0.0" physics="on">
+  <ambientLight colour="0.9 0.9 0.9 1"/>
+  <nodes>
+    <node name="red_ball">
+      <entity mass="1" collider="sphere">
+        <mesh filename="red_ball.mesh"/>
+      </entity>
+      <position point="3.441408 61.964962 -5.080399"/>
+    </node>
+    <node name="yellow_ball">
+      <entity mass="1" collider="sphere">
+        <mesh filename="yellow_ball.mesh"/>
+      </entity>
+      <position point="1.555043 72.067947 -4.102097"/>
+    </node>
+    <node name="white_ball">
+      <entity mass="1" collider="sphere">
+        <mesh filename="white_ball.mesh"/>
+      </entity>
+      <position point="-0.055092 15.336480 0.747743"/>
+    </node>
+    <node name="Table0">
+      <entity collider="mesh">
+        <mesh filename="Table0.mesh"/>
+      </entity>
+    </node>
+    <node name="Table1">
+      <entity collider="mesh">
+        <mesh filename="Table1.mesh"/>
+      </entity>
+    </node>
+    <node name="Table2">
+      <entity collider="mesh">
+        <mesh filename="Table2.mesh"/>
+      </entity>
+    </node>
+    <node name="Table3">
+      <entity collider="mesh">
+        <mesh filename="Table3.mesh"/>
+      </entity>
+    </node>
+    <node name="Table4">
+      <entity collider="mesh">
+        <mesh filename="Table4.mesh"/>
+      </entity>
+    </node>
+    <node name="Sun">
+      <light type="point">
+        <diffuse  colour="1 1 1 1"/>
+        <specular colour="1 1 1 1"/>
+        <attenuation constant="1" linear="4e-2" quadratic="0" range="5000"/>
+      </light>
+      <position point="0 300 0"/>
+    </node>
+    <node name="MainLight">
+      <light type="spot">
+        <diffuse colour="1 1 1 1"/>
+        <range falloff="1.0" inner="0.66" outer="0.78" />
+        <attenuation constant="1.0" linear="4e-2" quadratic="0" range="5000" />
+      </light>
+      <position point="0 200 0" />
+      <orientation quaternion="0.607501 -0.732324 0.163775 0.260427" />
+    </node>
+    <node name="myCamera">
+      <camera fovy="45">
+        <clipping near="1e-3" far="5e3"/>
+      </camera>
+      <position point="1.083197 117.091263 -311.245392"/>
+      <orientation quaternion="0.002405 -0.004120 0.983850 0.178934"/>
+    </node>
+  </nodes>
+</scenexx>
