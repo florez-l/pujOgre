@@ -2,7 +2,7 @@
   <ambientLight colour="0.9 0.9 0.9 1"/>
   <nodes>
     <node name="sphere">
-      <entity>
+      <entity mass="0.5" collider="sphere">
         <parametric2
            material="sphere"
            urange="0 2pi closed"
@@ -14,10 +14,10 @@
           <z function="cos(v)"/>
         </parametric2>
       </entity>
-      <position point="0 50 0" />
+      <position point="0 20 0" />
     </node>
     <node name="floor">
-      <entity>
+      <entity collider="bbox">
         <vtk filename="floor_00.obj" material="floor"/>
       </entity>
     </node>

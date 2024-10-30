@@ -2,12 +2,9 @@
 // @author Leonardo Florez-Valencia (florez-l@javeriana.edu.co)
 // =========================================================================
 
-#include <iostream>
-
-
-
 #include <PUJ_Ogre/DotXXSceneLoader.h>
 #include <Ogre.h>
+#include <OgreBullet.h>
 #include <pugixml.hpp>
 
 // -------------------------------------------------------------------------
@@ -32,21 +29,6 @@ load(
 {
   this->m_sGroupName = groupName;
   this->m_SceneMgr = rootNode->getCreator( );
-
-  auto binds = rootNode->getUserObjectBindings( );
-  std::cout << "****** _Z" << typeid( binds ).name( ) << std::endl;
-  auto dynworld = binds.getUserAny( "DynamicWorld" );
-  if( dynworld.has_value( ) )
-  {
-    
-    std::cout << "*** OK ***" << std::endl;
-    std::cout << *( Ogre::any_cast< std::string* >( dynworld ) ) << std::endl;
-  }
-  else
-  {
-    std::cout << "*** NO ***" << std::endl;
-  } // end if
-
 
   pugi::xml_document XMLDoc;
   auto result
@@ -79,6 +61,18 @@ load(
   this->m_AttachNode = rootNode;
 
   // Process the scene
+  Ogre::String physics = Self::_attrib( XMLRoot, "physics", "off" );
+  if( physics == "on" )
+  {
+    auto binds = rootNode->getUserObjectBindings( );
+    auto dynworld = binds.getUserAny( "DynamicsWorld" );
+    if( dynworld.has_value( ) )
+      this->m_DynamicsWorld
+        =
+        Ogre::any_cast< Ogre::Bullet::DynamicsWorld* >( dynworld );
+    else
+      this->m_DynamicsWorld = nullptr;
+  } // end if
   this->_process( XMLRoot );
 }
 
@@ -189,10 +183,24 @@ _node( pugi::xml_node& XMLNode, Ogre::SceneNode* p )
 void PUJ_Ogre::DotXXSceneLoader::
 _entity( pugi::xml_node& XMLNode, Ogre::SceneNode* p )
 {
+  Ogre::Real mass = Self::_real( XMLNode, "mass", 0 );
+  Ogre::String collider = Self::_attrib( XMLNode, "collider", "bbox" );
+
+  Ogre::Entity* ent = nullptr;
   if( auto e = XMLNode.child( "parametric2" ) )
-    this->_parametric2( e, p );
+    ent = this->_parametric2( e, p );
   if( auto e = XMLNode.child( "vtk" ) )
-    this->_vtk( e, p );
+    ent = this->_vtk( e, p );
+
+  Ogre::Bullet::ColliderType        ct = Ogre::Bullet::CT_BOX;
+  if     ( collider == "sphere" )   ct = Ogre::Bullet::CT_SPHERE;
+  else if( collider == "cylinder" ) ct = Ogre::Bullet::CT_CYLINDER;
+  else if( collider == "capsule" )  ct = Ogre::Bullet::CT_CAPSULE;
+  else if( collider == "mesh" )     ct = Ogre::Bullet::CT_TRIMESH;
+  else if( collider == "hull" )     ct = Ogre::Bullet::CT_HULL;
+
+  if( ent != nullptr && this->m_DynamicsWorld != nullptr )
+    this->m_DynamicsWorld->addRigidBody( mass, ent, ct );
 }
 
 // -------------------------------------------------------------------------

@@ -39,6 +39,7 @@ include(GenerateExportHeader)
 
 # -- Packages
 find_package(OGRE REQUIRED)
+find_package(Bullet REQUIRED)
 find_package(VTK REQUIRED)
 
 # -- Ogre Plugins

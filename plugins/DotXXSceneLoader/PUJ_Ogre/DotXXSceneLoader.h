@@ -19,6 +19,7 @@ namespace Ogre
 {
   class SceneManager;
   class SceneNode;
+  namespace Bullet { class DynamicsWorld; }
 } // end namespace
 
 namespace PUJ_Ogre
@@ -54,8 +55,10 @@ namespace PUJ_Ogre
     void _camera( pugi::xml_node& XMLNode, Ogre::SceneNode* p = 0 );
     void _light( pugi::xml_node& XMLNode,  Ogre::SceneNode* p = 0 );
 
-    void _parametric2( pugi::xml_node& XMLNode, Ogre::SceneNode* p = 0 );
-    void _vtk( pugi::xml_node& XMLNode, Ogre::SceneNode* p = 0 );
+    Ogre::Entity* _parametric2(
+      pugi::xml_node& XMLNode, Ogre::SceneNode* p = 0
+      );
+    Ogre::Entity* _vtk( pugi::xml_node& XMLNode, Ogre::SceneNode* p = 0 );
 
     // XML-related helpers
     static Ogre::String _attrib(
@@ -83,42 +86,13 @@ namespace PUJ_Ogre
       const Ogre::Quaternion& defaultValue = Ogre::Quaternion( 1, 0, 0, 0 )
       );
     
-    /* TODO
-       void writeNode( pugi::xml_node& parentXML, const SceneNode* node );
-
-       void processExternals( pugi::xml_node& XMLNode );
-       void processEnvironment( pugi::xml_node& XMLNode );
-       void processTerrainGroup( pugi::xml_node& XMLNode );
-       void processBlendmaps( pugi::xml_node& XMLNode );
-       void processUserData( pugi::xml_node& XMLNode, Ogre::UserObjectBindings& userData );
-       void processLight( pugi::xml_node& XMLNode, Ogre::SceneNode* pParent = 0 );
-       void processCamera( pugi::xml_node& XMLNode, Ogre::SceneNode* pParent = 0 );
-
-       void processNode( pugi::xml_node& XMLNode, Ogre::SceneNode* pParent = 0 );
-       void processLookTarget( pugi::xml_node& XMLNode, Ogre::SceneNode* pParent );
-       void processTrackTarget( pugi::xml_node& XMLNode, Ogre::SceneNode* pParent );
-       void processEntity( pugi::xml_node& XMLNode, Ogre::SceneNode* pParent );
-       void processParticleSystem( pugi::xml_node& XMLNode, Ogre::SceneNode* pParent );
-       void processBillboardSet( pugi::xml_node& XMLNode, Ogre::SceneNode* pParent );
-       void processPlane( pugi::xml_node& XMLNode, Ogre::SceneNode* pParent );
-       void processNodeAnimations( pugi::xml_node& XMLNode, Ogre::SceneNode* pParent );
-       void processNodeAnimation( pugi::xml_node& XMLNode, Ogre::SceneNode* pParent );
-       void processKeyframe( pugi::xml_node& XMLNode, Ogre::NodeAnimationTrack* pTrack );
-
-       void processFog( pugi::xml_node& XMLNode );
-       void processSkyBox( pugi::xml_node& XMLNode );
-       void processSkyDome( pugi::xml_node& XMLNode );
-       void processSkyPlane( pugi::xml_node& XMLNode );
-
-       void processLightRange( pugi::xml_node& XMLNode, Ogre::Light* pLight );
-       void processLightAttenuation( pugi::xml_node& XMLNode, Ogre::Light* pLight );
-       void processLightSourceSize( pugi::xml_node& XMLNode, Ogre::Light* pLight );
-    */
   protected:
     Ogre::SceneManager* m_SceneMgr;
     Ogre::SceneNode*    m_AttachNode;
     Ogre::String        m_sGroupName;
     Ogre::ColourValue   m_BackgroundColour;
+
+    Ogre::Bullet::DynamicsWorld* m_DynamicsWorld;
   };
 
   /**

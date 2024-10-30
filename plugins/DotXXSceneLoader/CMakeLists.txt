@@ -27,6 +27,7 @@ set(
   )
 
 include_directories(
+  ${BULLET_INCLUDE_DIR}
   ${PROJECT_BINARY_DIR}/plugins/DotXXSceneLoader
   ${PROJECT_SOURCE_DIR}/plugins/DotXXSceneLoader
   )
@@ -38,7 +39,7 @@ generate_export_header(
   )
 target_link_libraries(
   Plugin_PUJ_Ogre_DotXXSceneLoader
-  PUBLIC OgreMain ${VTK_LIBRARIES}
+  PUBLIC OgreMain OgreBullet ${VTK_LIBRARIES}
   PRIVATE pugixml
   )
 

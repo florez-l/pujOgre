@@ -16,7 +16,7 @@
 #include <pugixml.hpp>
 
 // -------------------------------------------------------------------------
-void PUJ_Ogre::DotXXSceneLoader::
+Ogre::Entity* PUJ_Ogre::DotXXSceneLoader::
 _parametric2( pugi::xml_node& XMLNode, Ogre::SceneNode* p )
 {
   Ogre::String material = Self::_attrib( XMLNode, "material" );
@@ -98,7 +98,10 @@ _parametric2( pugi::xml_node& XMLNode, Ogre::SceneNode* p )
   } // end for
 
   man->end( );
-  n->attachObject( man );
+  auto mesh = man->convertToMesh( n->getName( ) + "_mesh" );
+  auto ent = this->m_SceneMgr->createEntity( mesh );
+  n->attachObject( ent );
+  return( ent );
 }
 
 // eof - $RCSfile$

@@ -16,6 +16,7 @@
 
 
 #include <Ogre.h>
+#include <OgreBullet.h>
 #include <OgreCameraMan.h>
 #include <OgreOverlaySystem.h>
 #include <PUJ_Ogre/Config.h>
@@ -156,8 +157,19 @@ namespace PUJ_Ogre
       {
         if( evt.keysym.sym == OgreBites::SDLK_ESCAPE )
           this->getRoot( )->queueEndRendering( );
+        if( evt.keysym.sym == 'g' || evt.keysym.sym == 'G' )
+          this->m_Simulating = true;
         return( true );
       }
+
+    virtual bool frameStarted( const Ogre::FrameEvent& evt ) override
+      {
+        if( this->m_Simulating )
+          this->m_DynamicsWorld->getBtWorld( )->
+            stepSimulation( evt.timeSinceLastFrame, 10 );
+        return( this->TContext::frameStarted( evt ) );
+      }
+
 
     // Main method
     virtual void go( )
@@ -173,8 +185,17 @@ namespace PUJ_Ogre
         this->TContext::setup( );
         this->addInputListener( this );
 
+        this->m_DynamicsWorld
+          =
+          new Ogre::Bullet::DynamicsWorld( Ogre::Vector3( 0, -9.8, 0 ) );
+
         auto* root = this->getRoot( );
         this->m_SceneMgr = root->createSceneManager( "DefaultSceneManager" );
+        auto* rootNode = this->m_SceneMgr->getRootSceneNode( );
+        rootNode->getUserObjectBindings( )
+          .setUserAny(
+            "DynamicsWorld", Ogre::Any( this->m_DynamicsWorld )
+            );
 
         // register our scene with the RTSS
         auto* shadergen = Ogre::RTShader::ShaderGenerator::getSingletonPtr( );
@@ -186,7 +207,6 @@ namespace PUJ_Ogre
     virtual void _loadScene( )
       {
         auto* root = this->m_SceneMgr->getRootSceneNode( );
-        root->getUserObjectBindings( ).setUserAny( "DynamicWorld", Ogre::Any( &( this->m_LELELELE ) ) );
         root->loadChildren( "sphere.scenexx" );
 
         auto* cam = this->m_SceneMgr->getCameras( ).begin( )->second;
@@ -205,7 +225,8 @@ namespace PUJ_Ogre
     std::string         m_Path;
     Ogre::SceneManager* m_SceneMgr { nullptr };
 
-    std::string m_LELELELE { "estoy por aca" };
+    bool                         m_Simulating    { false };
+    Ogre::Bullet::DynamicsWorld* m_DynamicsWorld { nullptr };
 
     /* TODO
        bool                  m_RealResourcesFile;
