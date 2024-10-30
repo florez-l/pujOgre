@@ -18,16 +18,12 @@ set(
   ${CMAKE_CURRENT_BINARY_DIR}/Config.h
   Application.h
   ApplicationWithBullet.h
-  #  BaseApplicationWithBullet.h
   Export.h
   )
 set(
   _src
   Application.cxx
   ApplicationWithBullet.cxx
-  #  BaseApplicationWithBullet.cxx
-  #  OBJReader.cxx
-  #  OgreBullet.cxx
   )
 
 add_library(PUJ_Ogre SHARED "${_hdr};${_src}")

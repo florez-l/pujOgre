@@ -182,6 +182,9 @@ _initSceneManager( )
 void PUJ_Ogre::Application::
 _configureCamera( )
 {
+  auto* cam = this->m_SceneMgr->getCameras( ).begin( )->second;
+  if( cam != nullptr )
+    this->getRenderWindow( )->addViewport( cam );
 }
 
 // eof - $RCSfile$
