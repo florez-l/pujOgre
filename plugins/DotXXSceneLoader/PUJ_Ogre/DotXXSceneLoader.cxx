@@ -67,9 +67,15 @@ load(
     auto binds = rootNode->getUserObjectBindings( );
     auto dynworld = binds.getUserAny( "DynamicsWorld" );
     if( dynworld.has_value( ) )
+    {
       this->m_DynamicsWorld
         =
         Ogre::any_cast< Ogre::Bullet::DynamicsWorld* >( dynworld );
+      Ogre::Vector3 g( 0, -9.8, 0 );
+      g = Self::_vector( XMLRoot, "gravity", g );
+      this->m_DynamicsWorld->getBtWorld( )->
+        setGravity( btVector3( g[ 0 ], g[ 1 ], g[ 2 ] ) );
+    }
     else
       this->m_DynamicsWorld = nullptr;
   } // end if
@@ -78,10 +84,7 @@ load(
 
 // -------------------------------------------------------------------------
 void PUJ_Ogre::DotXXSceneLoader::
-exportScene(
-  Ogre::SceneNode* rootNode,
-  const Ogre::String& outFileName
-  )
+exportScene( Ogre::SceneNode* rootNode, const Ogre::String& outFileName )
 {
 }
 
@@ -113,7 +116,8 @@ _process( pugi::xml_node& XMLRoot )
       +
       Ogre::String( XMLRoot.attribute("sceneManager" ).value( ) );
   if( XMLRoot.attribute( "author" ) )
-    message += ", author " + Ogre::String( XMLRoot.attribute( "author" ).value( ) );
+    message +=
+      ", author " + Ogre::String( XMLRoot.attribute( "author" ).value( ) );
   Ogre::LogManager::getSingleton( ).logMessage( message );
 
   // Process nodes
@@ -264,8 +268,8 @@ _light( pugi::xml_node& XMLNode, Ogre::SceneNode* p )
   else if ( s == "spot" )        l->setType( Ogre::Light::LT_SPOTLIGHT );
   else if ( s == "radPoint" )    l->setType( Ogre::Light::LT_POINT );
   else if ( s == "rect" )        l->setType( Ogre::Light::LT_RECTLIGHT );
-  l->setVisible( Self::_bool( XMLNode, "visible", true ) );
-  l->setCastShadows( Self::_bool( XMLNode, "castShadows", true ) );
+  l->setVisible( true /*Self::_bool( XMLNode, "visible", true )*/ );
+  l->setCastShadows( true /*Self::_bool( XMLNode, "castShadows", true )*/ );
   l->setPowerScale( Self::_real( XMLNode, "powerScale", 1 ) );
 
   // Colours

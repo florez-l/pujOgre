@@ -71,7 +71,7 @@ bool PUJ_Ogre_Billiards_App::
 frameStarted( const Ogre::FrameEvent& evt )
 {
   if( this->m_Simulating )
-    this->_simulateOneStep( evt.timeSinceLastFrame, 10 );
+    this->_simulateOneStep( evt.timeSinceLastFrame, 1 );
   return( this->Superclass::frameStarted( evt ) );
 }
 

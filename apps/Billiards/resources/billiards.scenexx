@@ -1,4 +1,4 @@
-<scenexx formatVersion="0.0" physics="on">
+<scenexx formatVersion="0.0" physics="on" gravity="0 -98 0">
   <ambientLight colour="0.9 0.9 0.9 1"/>
   <nodes>
     <node name="red_ball">
@@ -50,7 +50,7 @@
         <specular colour="1 1 1 1"/>
         <attenuation constant="1" linear="4e-2" quadratic="0" range="5000"/>
       </light>
-      <position point="0 300 0"/>
+      <position point="46.758095 134.131165 26.527702"/>
     </node>
     <node name="MainLight">
       <light type="spot">
@@ -58,7 +58,7 @@
         <range falloff="1.0" inner="0.66" outer="0.78" />
         <attenuation constant="1.0" linear="4e-2" quadratic="0" range="5000" />
       </light>
-      <position point="0 200 0" />
+      <position point="-6.654108 174.637207 1.901460"/>
       <orientation quaternion="0.607501 -0.732324 0.163775 0.260427" />
     </node>
     <node name="myCamera">
