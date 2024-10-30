@@ -3,10 +3,11 @@
 ## =========================================================================
 
 include_directories(
+  ${BULLET_INCLUDE_DIRS}
   ${PROJECT_BINARY_DIR}/lib
   ${PROJECT_SOURCE_DIR}/lib
   )
 
-subdirs(OBJViewer Tejo)
+subdirs(Tejo)
 
 ## eof - CMakeLists.txt

@@ -3,69 +3,73 @@
 // =========================================================================
 
 #include <iostream>
-#include <PUJ_Ogre/BaseApplicationWithBullet.h>
+#include <utility>
 
 #include <Ogre.h>
+#include <OgreBullet.h>
 #include <OgreCameraMan.h>
+#include <PUJ_Ogre/ApplicationWithBullet.h>
 
 /**
  */
-class Application
-  : public PUJ_Ogre::BaseApplicationWithBullet
+class PUJ_Ogre_Tejo_App
+  : public PUJ_Ogre::ApplicationWithBullet
 {
 public:
-  using Superclass  = PUJ_Ogre::BaseApplicationWithBullet;
+  using Superclass = PUJ_Ogre::ApplicationWithBullet;
 
 public:
-  Application(
-    const std::string& app_name,
-    const std::string& resources = "PUJ_Ogre_Tejo_resources.zip"
-    );
-  virtual ~Application( ) override = default;
+  PUJ_Ogre_Tejo_App( const std::string& app_exec );
+  virtual ~PUJ_Ogre_Tejo_App( ) override;
 
   virtual bool keyPressed( const OgreBites::KeyboardEvent& evt ) override;
   virtual bool frameStarted( const Ogre::FrameEvent& evt ) override;
 
 protected:
-
-  virtual void _configureCamera( const Ogre::AxisAlignedBox& bbox ) override;
+  virtual void _configureCamera( ) override;
   virtual void _loadScene( ) override;
-  virtual void _connect_Ogre_Bullet( ) override;
 
 protected:
-  Ogre::AxisAlignedBox m_BBox;
-  Ogre::SceneNode* m_Field;
+  bool                  m_Simulating { false };
+  OgreBites::CameraMan* m_CamMan;
+  Ogre::SceneNode*      m_Cancha;
   std::pair< Ogre::SceneNode*, btRigidBody* > m_Tejo;
-
-  bool m_Simulating { false };
 };
 
+// -------------------------------------------------------------------------
 int main( int argc, char** argv )
 {
-  Application app( "Tejo!" );
+  PUJ_Ogre_Tejo_App app( argv[ 0 ] );
   app.go( );
-
   return( EXIT_SUCCESS );
 }
 
 // -------------------------------------------------------------------------
-Application::
-Application( const std::string& app_name, const std::string& resources )
-  : Superclass( app_name, resources, false )
+PUJ_Ogre_Tejo_App::
+PUJ_Ogre_Tejo_App( const std::string& app_exec )
+  : Superclass( app_exec, "PUJ_Ogre_Tejo_resources.cfg" )
 {
 }
 
 // -------------------------------------------------------------------------
-bool Application::
+PUJ_Ogre_Tejo_App::
+~PUJ_Ogre_Tejo_App( )
+{
+}
+
+// -------------------------------------------------------------------------
+bool PUJ_Ogre_Tejo_App::
 keyPressed( const OgreBites::KeyboardEvent& evt )
 {
-  if( evt.keysym.sym == 'g' )
-    this->m_Simulating = !( this->m_Simulating );
-  return( this->Superclass::keyPressed( evt ) );
+  if( evt.keysym.sym == OgreBites::SDLK_ESCAPE )
+    this->getRoot( )->queueEndRendering( );
+  if( evt.keysym.sym == 'g' || evt.keysym.sym == 'G' )
+    this->m_Simulating = true;
+  return( true );
 }
 
 // -------------------------------------------------------------------------
-bool Application::
+bool PUJ_Ogre_Tejo_App::
 frameStarted( const Ogre::FrameEvent& evt )
 {
   if( !( this->m_Simulating ) )
@@ -74,6 +78,7 @@ frameStarted( const Ogre::FrameEvent& evt )
     Ogre::Vector3 dir = cam->getLocalAxes( ).GetColumn( 2 );
     Ogre::Vector3 pos = cam->getPosition( ) - ( 2 * dir );
     this->m_Tejo.first->setPosition( pos );
+
     auto tr = this->m_Tejo.second->getWorldTransform( );
     tr.setOrigin( btVector3( pos[ 0 ], pos[ 1 ], pos[ 2 ] ) );
     this->m_Tejo.second->setWorldTransform( tr );
@@ -82,114 +87,47 @@ frameStarted( const Ogre::FrameEvent& evt )
       );
   }
   else
-    this->m_BulletWorld->getBtWorld( )
-      ->stepSimulation( evt.timeSinceLastFrame, 1 );
-
+    this->_simulateOneStep( evt.timeSinceLastFrame, 10 );
   return( this->Superclass::frameStarted( evt ) );
 }
 
 // -------------------------------------------------------------------------
-void Application::
-_configureCamera( const Ogre::AxisAlignedBox& bbox )
+void PUJ_Ogre_Tejo_App::
+_configureCamera( )
 {
-  auto* root = this->getRoot( );
-  auto* root_node = this->m_SceneMgr->getRootSceneNode( );
+  this->Superclass::_configureCamera( );
 
-  // Configure camera
-  auto cam = this->m_SceneMgr->createCamera( "Camera" );
-  cam->setNearClipDistance( 0.005 );
-  cam->setAutoAspectRatio( true );
-  auto vp = this->getRenderWindow( )->addViewport( cam );
-  vp->setBackgroundColour( Ogre::ColourValue( 0, 0, 0 ) );
-
-  auto camnode = root_node->createChildSceneNode( );
-  camnode->attachObject( cam );
-
-  this->m_CamMan = new OgreBites::CameraMan( camnode );
-  this->m_CamMan->setStyle( OgreBites::CS_FREELOOK );
-  this->m_CamMan->setTopSpeed( 1.2 );
-  this->m_CamMan->setFixedYaw( true );
-  this->addInputListener( this->m_CamMan );
-
-  camnode->setPosition( bbox.getCenter( ) );
-  camnode->lookAt( Ogre::Vector3( 0, 0, -1 ), Ogre::Node::TS_WORLD );
+  auto* cam = this->m_SceneMgr->getCameras( ).begin( )->second;
+  if( cam != nullptr )
+  {
+    this->m_CamMan = new OgreBites::CameraMan( cam->getParentSceneNode( ) );
+    this->m_CamMan->setTopSpeed( 1.2 );
+    this->m_CamMan->setFixedYaw( true );
+    this->m_CamMan->setStyle( OgreBites::CS_FREELOOK );
+    this->addInputListener( this->m_CamMan );
+  } // end if
 }
 
 // -------------------------------------------------------------------------
-void Application::
+void PUJ_Ogre_Tejo_App::
 _loadScene( )
 {
-  auto* root = this->getRoot( );
-  auto* root_node = this->m_SceneMgr->getRootSceneNode( );
+  auto root = this->m_SceneMgr->getRootSceneNode( );
+  root->loadChildren( "tejo.scenexx" );
 
-  // Load tejo
-  auto tejo = this->_loadOBJ( this->m_BBox, "sphere.obj" )[ 0 ];
-  auto tejo_mesh = tejo->convertToMesh( "tejo_mesh" );
-  auto tejo_entity =
-    this->m_SceneMgr->createEntity( "tejo_entity", "tejo_mesh" );
-  this->m_Tejo.first = root_node->createChildSceneNode( );
-  this->m_Tejo.first->attachObject( tejo_entity );
+  this->m_Cancha = this->m_SceneMgr->getSceneNode( "cancha" );
 
-  // Load field
-  auto field = this->_loadOBJ( this->m_BBox, "cancha.obj" )[ 0 ];
-  auto field_mesh = field->convertToMesh( "field_mesh" );
-  auto field_entity =
-    this->m_SceneMgr->createEntity( "field_entity", "field_mesh" );
-  this->m_Field = root_node->createChildSceneNode( );
-  this->m_Field->attachObject( field_entity );
-
-  // Position all objects
-  this->m_Tejo.first->setPosition( this->m_BBox.getCenter( ) );
-
-  // Configure camera
-  this->_configureCamera( this->m_BBox );
-
-  // Configure lights
-  this->m_SceneMgr->setAmbientLight( Ogre::ColourValue( 0.1, 0.1, 0 ) );
-
-  /* TODO
-     Ogre::Light* l = this->m_SceneMgr->createLight( "main_light" );
-     l->setDiffuseColour( 0.1, 1, 1 );
-     l->setSpecularColour( 0.1, 1, 1 );
-     l->setType( Ogre::Light::LT_POINT );
-
-     Ogre::SceneNode* ln = root_node->createChildSceneNode( );
-     ln->attachObject( l );
-     ln->setPosition( Ogre::Vector3( 2.25, 1.05, 9.75 ) );
-     std::cout << bbox.getCenter( ) << std::endl;
-
-     auto corners = bbox.getAllCorners( );
-     for( unsigned int i = 0; i < 8; ++i )
-     {
-     std::stringstream n;
-     n << "light_" << i;
-     Ogre::Light* l = this->m_SceneMgr->createLight( n.str( ) );
-     l->setDiffuseColour( 1, 1, 1 );
-     l->setSpecularColour( 1, 1, 1 );
-     l->setType( Ogre::Light::LT_POINT );
-
-     Ogre::SceneNode* ln = root_node->createChildSceneNode( );
-     ln->attachObject( l );
-     ln->setPosition( corners[ i ] );
-     } // end for
-  */
-}
-
-// -------------------------------------------------------------------------
-void Application::
-_connect_Ogre_Bullet( )
-{
-  auto tejo =
-    dynamic_cast< Ogre::Entity* >(
-      this->m_Tejo.first->getAttachedObject( 0 )
-      );
-  this->m_Tejo.second = this->m_BulletWorld
-    ->addRigidBody( 1, tejo, PUJ_Ogre::Bullet::CT_SPHERE );
-
-  auto field =
-    dynamic_cast< Ogre::Entity* >( this->m_Field->getAttachedObject( 0 ) );
-  this->m_BulletWorld
-    ->addCollisionObject( field, PUJ_Ogre::Bullet::CT_TRIMESH );
+  auto tejo_node = this->m_SceneMgr->getSceneNode( "tejo" );
+  auto tejo_ent
+    =
+    dynamic_cast< Ogre::Entity* >( tejo_node->getAttachedObject( 0 ) );
+  auto tejo_bind
+    =
+    tejo_ent->getUserObjectBindings( ).getUserAny( "btRigidBody" );
+  btRigidBody* tejo_body = nullptr;
+  if( tejo_bind.has_value( ) )
+    tejo_body = Ogre::any_cast< btRigidBody* >( tejo_bind );
+  this->m_Tejo = std::make_pair( tejo_node, tejo_body );
 }
 
 // eof - $RCSfile$

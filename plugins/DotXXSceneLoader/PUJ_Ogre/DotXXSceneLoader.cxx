@@ -200,7 +200,11 @@ _entity( pugi::xml_node& XMLNode, Ogre::SceneNode* p )
   else if( collider == "hull" )     ct = Ogre::Bullet::CT_HULL;
 
   if( ent != nullptr && this->m_DynamicsWorld != nullptr )
-    this->m_DynamicsWorld->addRigidBody( mass, ent, ct );
+  {
+    btRigidBody* body = this->m_DynamicsWorld->addRigidBody( mass, ent, ct );
+    ent->getUserObjectBindings( )
+      .setUserAny( "btRigidBody", Ogre::Any( body ) );
+  } // end if
 }
 
 // -------------------------------------------------------------------------

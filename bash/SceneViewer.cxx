@@ -69,7 +69,7 @@ protected:
       this->m_SceneMgr->getRootSceneNode( )->loadChildren( this->m_FileName );
     }
 
-  protected:
+protected:
   std::string m_FileName;
   bool        m_Simulating { false };
 };

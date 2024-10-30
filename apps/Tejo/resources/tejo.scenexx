@@ -1,0 +1,37 @@
+<scenexx formatVersion="0.0" physics="on">
+  <ambientLight colour="0.9 0.9 0.9 1"/>
+  <nodes>
+    <node name="tejo">
+      <entity mass="1" collider="sphere">
+        <vtk filename="sphere.obj" material="tejo_tejo_material"/>
+      </entity>
+    </node>
+    <node name="cancha">
+      <entity collider="mesh">
+        <vtk filename="cancha.obj" material="cancha_tejo_material"/>
+      </entity>
+    </node>
+    <node name="Sun">
+      <light type="point">
+        <diffuse  colour="1 1 1 1"/>
+        <specular colour="1 1 1 1"/>
+        <attenuation constant="1" linear="4e-2" quadratic="0" range="5000"/>
+      </light>
+      <position point="0 300 0"/>
+    </node>
+    <node name="MainLight">
+      <light type="spot">
+        <diffuse colour="1 1 1 1"/>
+        <range falloff="1.0" inner="0.66" outer="0.78" />
+        <attenuation constant="1.0" linear="4e-2" quadratic="0" range="5000" />
+      </light>
+      <position point="0 200 0" />
+      <orientation quaternion="0.607501 -0.732324 0.163775 0.260427" />
+    </node>
+    <node name="myCamera">
+      <camera fovy="45">
+        <clipping near="1e-3" far="5e3"/>
+      </camera>
+    </node>
+  </nodes>
+</scenexx>

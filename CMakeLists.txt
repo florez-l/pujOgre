@@ -66,6 +66,6 @@ foreach(_plg ${_plgs})
 endforeach()
 
 # -- Targets
-subdirs(bash plugins lib)
+subdirs(apps bash plugins lib)
 
 ## eof - CMakeLists.txt
