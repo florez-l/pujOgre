@@ -1,4 +1,4 @@
-<scenexx formatVersion="0.0" physics="on" gravity="0 -98 0">
+<scenexx formatVersion="0.0" physics="on" gravity="0 -9.8 0">
   <ambientLight colour="0.9 0.9 0.9 1"/>
   <nodes>
     <node name="red_ball">
