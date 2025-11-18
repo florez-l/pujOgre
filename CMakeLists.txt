@@ -3,19 +3,15 @@
 ## =========================================================================
 
 cmake_minimum_required(VERSION 3.20)
-project(PUJ_Ogre)
+project(pujOgre VERSION 0.0.0.1)
 
-## -- Some configurations
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+# Base configurations
+include(cmake/pujOgreBase.cmake)
 
-## -- Packages
-find_package(VTK REQUIRED)
-find_package(OGRE REQUIRED)
-find_package(Bullet REQUIRED)
+# Targets
+subdirs(src)
 
-## -- Targets
-subdirs(lib src)
+# Installation directives
+include(cmake/pujOgreInstall.cmake)
 
 ## eof - CMakeLists.txt
