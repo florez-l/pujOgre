@@ -1,0 +1,24 @@
+## =========================================================================
+## @author Leonardo Florez-Valencia (florez-l@javeriana.edu.co)
+## =========================================================================
+
+set(pujOgre_VERSION @PROJECT_VERSION@)
+
+# -- Some variables
+set(pujOgre_INSTALL_PREFIX @CMAKE_INSTALL_PREFIX@)
+
+# -- Base configurations
+set(OGRE_DIR "@OGRE_DIR@")
+find_package(OGRE REQUIRED)
+
+# -- From cmake
+@PACKAGE_INIT@
+
+# -- Include targets file
+set(_targets "${CMAKE_CURRENT_LIST_DIR}/@targets_export_name@.cmake")
+if(EXISTS "${_targets}")
+  include("${_targets}")
+  check_required_components("@PROJECT_NAME@")
+endif(EXISTS "${_targets}")
+
+## eof - $RCSfile$

@@ -41,6 +41,7 @@ set(CMAKE_CXX_VERSION 23)
 include(GenerateExportHeader)
 
 # Find packages
+find_package(Boost REQUIRED)
 find_package(OGRE REQUIRED)
 
 ## eof - pujOgreBase.cmake
