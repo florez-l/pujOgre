@@ -3,15 +3,23 @@
 ## =========================================================================
 
 cmake_minimum_required(VERSION 3.20)
-project(pujOgre VERSION 0.0.0.1)
+project(pujOgre LANGUAGES CXX VERSION 1.0.0.0)
 
-# Base configurations
-include(cmake/pujOgreBase.cmake)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Targets
-subdirs(lib/pujOgre src)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
 
-# Installation directives
-include(cmake/pujOgreInstall.cmake)
+include(GenerateExportHeader)
+
+find_package(OGRE REQUIRED)
+find_package(
+  VTK QUIET
+  COMPONENTS CommonCore CommonDataModel FiltersCore IOLegacy IOXML
+  )
+
+subdirs(lib/pujOgre)
 
 ## eof - CMakeLists.txt
