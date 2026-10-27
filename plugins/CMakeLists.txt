@@ -2,6 +2,6 @@
 ## @author Leonardo Florez-Valencia (florez-l@javeriana.edu.co)
 ## =========================================================================
 
-# subdirs()
+subdirs(OgreVTKCodec)
 
 ## eof - CMakeLists.txt
