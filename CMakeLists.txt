@@ -20,6 +20,6 @@ find_package(
   COMPONENTS CommonCore CommonDataModel FiltersCore IOLegacy IOXML
   )
 
-subdirs(lib/pujOgre)
+subdirs(lib/pujOgre plugins)
 
 ## eof - CMakeLists.txt
