@@ -17,7 +17,9 @@ include(GenerateExportHeader)
 find_package(OGRE REQUIRED)
 find_package(
   VTK QUIET
-  COMPONENTS CommonCore CommonDataModel FiltersCore IOLegacy IOXML
+  COMPONENTS
+  CommonCore CommonDataModel CommonComputationalGeometry CommonMisc
+  FiltersCore FiltersSources IOLegacy IOXML
   )
 
 subdirs(lib/pujOgre plugins)

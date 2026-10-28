@@ -9,6 +9,9 @@
 // or in code:              root->loadPlugin("Plugin_VtkCodec");
 
 #include <pujOgre/vtkPolyData2OgreMesh.h>
+#include <plugins/OgreVTKCodec/Export.h>
+
+#include <vector>
 
 #include <OgrePlugin.h>
 #include <OgreRoot.h>
@@ -22,13 +25,11 @@
 #include <vtkXMLPolyDataReader.h>
 #include <vtkPolyDataReader.h>
 
-#include <vector>
-
 namespace
 {
   /**
    */
-  class pujOgreVTKCodec
+  class Plugin_pujOgreVTKCodec_EXPORT pujOgreVTKCodec
     : public Ogre::Codec
   {
   public:
@@ -142,13 +143,13 @@ namespace
 } // end namespace
 
 // Entry points Ogre looks up when it loads the shared library.
-extern "C" void /*VTKOGRE_EXPORT*/ dllStartPlugin( )
+extern "C" void Plugin_pujOgreVTKCodec_EXPORT dllStartPlugin( )
 {
   gPlugin = new pujOgreVTKPlugin( );
   Ogre::Root::getSingleton( ).installPlugin( gPlugin );
 }
 
-extern "C" void /*VTKOGRE_EXPORT*/ dllStopPlugin( )
+extern "C" void Plugin_pujOgreVTKCodec_EXPORT dllStopPlugin( )
 {
   Ogre::Root::getSingleton( ).uninstallPlugin( gPlugin );
   delete gPlugin;

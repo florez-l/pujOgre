@@ -4,8 +4,8 @@
 
 # Source code
 set(_name pujOgre)
-set(_hdr vtkPolyData2OgreMesh.h)
-set(_src vtkPolyData2OgreMesh.cxx)
+set(_hdr vtkParametricExpression.h vtkPolyData2OgreMesh.h)
+set(_src vtkParametricExpression.cxx vtkPolyData2OgreMesh.cxx)
 
 # Build library
 include_directories(${PROJECT_BINARY_DIR}/lib ${PROJECT_SOURCE_DIR}/lib)
