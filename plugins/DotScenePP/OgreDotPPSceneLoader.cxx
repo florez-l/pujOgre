@@ -113,7 +113,7 @@ ColourValue parseColour(pugi::xml_node& XMLNode)
                        XMLNode.attribute("a") != NULL ? StringConverter::parseReal(XMLNode.attribute("a").value()) : 1);
 }
 
-struct DotSceneCodec : public Codec
+struct DotPPSceneCodec : public Codec
 {
     String magicNumberToFileExt(const char* magicNumberPtr, size_t maxbytes) const override { return ""; }
     String getType() const override { return "scenepp"; }
@@ -1184,18 +1184,18 @@ void DotScenePPLoader::writeNode(pugi::xml_node& parentXML, const SceneNode* n)
         writeNode(nodeXML, static_cast<SceneNode*>(c));
 }
 
-const Ogre::String& DotScenePlugin::getName() const {
-    static Ogre::String name = "DotScene Loader";
+const Ogre::String& DotPPScenePlugin::getName() const {
+    static Ogre::String name = "DotPPScene Loader";
     return name;
 }
 
-void DotScenePlugin::install()
+void DotPPScenePlugin::install()
 {
-    mCodec = new DotSceneCodec();
+    mCodec = new DotPPSceneCodec();
     Codec::registerCodec(mCodec);
 }
 
-void DotScenePlugin::uninstall() {
+void DotPPScenePlugin::uninstall() {
     Codec::unregisterCodec(mCodec);
     delete mCodec;
 }
@@ -1204,7 +1204,7 @@ void DotScenePlugin::uninstall() {
     extern "C" Plugin_pujOgreDotScenePPCodec_EXPORT void dllStartPlugin();
     extern "C" Plugin_pujOgreDotScenePPCodec_EXPORT void dllStopPlugin();
 
-    static DotScenePlugin plugin;
+    static DotPPScenePlugin plugin;
 
     extern "C" Plugin_pujOgreDotScenePPCodec_EXPORT void dllStartPlugin()
     {

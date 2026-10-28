@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scene formatVersion="1.1">
+  <nodes>
+    <!-- Torus from its parametric expression (R = ring radius, r = tube radius) -->
+    <node name="TorusNode">
+      <parametricSurface name="Torus" material="RedTorus" uResolution="100" vResolution="100">
+        <uRange min="0" max="6.283185307" join="true"/>
+        <vRange min="0" max="6.283185307" join="true"/>
+        <param name="R" value="2"/>
+        <param name="r" value="0.6"/>
+        <point  x="(R + r*cos(v))*cos(u)" y="(R + r*cos(v))*sin(u)" z="r*sin(v)"/>
+        <normal x="cos(v)*cos(u)"         y="cos(v)*sin(u)"         z="sin(v)"/>
+      </parametricSurface>
+    </node>
+
+    <!-- Light -->
+    <node name="LightNode">
+      <position x="4" y="6" z="8"/>
+      <light name="MainLight" type="point">
+        <colourDiffuse  r="1" g="1" b="1"/>
+        <colourSpecular r="1" g="1" b="1"/>
+      </light>
+    </node>
+  </nodes>
+</scene>

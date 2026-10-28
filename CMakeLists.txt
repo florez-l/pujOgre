@@ -22,6 +22,6 @@ find_package(
   FiltersCore FiltersSources IOLegacy IOXML
   )
 
-subdirs(lib/pujOgre plugins)
+subdirs(apps lib/pujOgre plugins)
 
 ## eof - CMakeLists.txt
