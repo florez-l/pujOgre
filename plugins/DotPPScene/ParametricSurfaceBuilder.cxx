@@ -2,7 +2,7 @@
 // @author Leonardo Florez-Valencia (florez-l@javeriana.edu.co)
 // =========================================================================
 
-#include <plugins/DotScenePP/ParametricSurfaceBuilder.h>
+#include <plugins/DotPPScene/ParametricSurfaceBuilder.h>
 #include <pujOgre/vtkParametricExpression.h>
 
 #include <pugixml.hpp>
