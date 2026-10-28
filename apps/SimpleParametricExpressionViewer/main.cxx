@@ -24,9 +24,20 @@ public:
     // Add our media folder to the default group, next to Ogre's own resources.
     void locateResources() override
     {
-        OgreBites::ApplicationContext::locateResources();
-        Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
-            MEDIA_DIR, "FileSystem", Ogre::RGN_DEFAULT);
+      auto& rgm = Ogre::ResourceGroupManager::getSingleton();
+
+    // Required by Ogre itself
+    const Ogre::String ogreMedia = getDefaultMediaDir();
+    rgm.addResourceLocation(ogreMedia + "/Main", "FileSystem", Ogre::RGN_INTERNAL);
+    rgm.addResourceLocation(ogreMedia + "/RTShaderLib", "FileSystem", Ogre::RGN_INTERNAL);
+
+    // TorusApp's own media
+    rgm.addResourceLocation(MEDIA_DIR, "FileSystem", Ogre::RGN_DEFAULT);
+    /* TODO
+       OgreBites::ApplicationContext::locateResources();
+       Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
+       MEDIA_DIR, "FileSystem", Ogre::RGN_DEFAULT);
+    */
     }
 
     // Ogre itself only loads the Plugin= entries of plugins.cfg, all from PluginFolder.
