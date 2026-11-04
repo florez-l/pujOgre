@@ -30,6 +30,14 @@
         <colourSpecular r="1" g="1" b="1"/>
       </light>
     </node>
+    <node name="MainCamera" >
+      <position x="0" y="0" z="8" />
+      <rotation qw="0.002405" qx="-0.004120" qy="0.983850" qz="0.178934" />
+      <scale x="1.000000" y="1.000000" z="1.000000" />
+      <camera fov="0.503380" name="MainCamera" projectionType="perspective" >
+        <clipping far="10000.000000" near="0.100000" />
+      </camera>
+    </node>
   </nodes>
 </scene>
 

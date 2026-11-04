@@ -1,3 +1,35 @@
+// =========================================================================
+// @author Leonardo Florez-Valencia (florez-l@javeriana.edu.co)
+// =========================================================================
+
+#include "Application.h"
+#include <iostream>
+
+int main( int argc, char** argv )
+{
+  if( argc < 2 )
+  {
+    std::cerr << "Usage: " << argv[ 0 ] << " file.scenepp" << std::endl;
+    return( EXIT_FAILURE );
+  } // end if
+  
+  try
+  {
+    Application app( argc, argv );
+    app.go( );
+    return( EXIT_SUCCESS );
+  }
+  catch( const std::exception& e )
+  {
+    Ogre::LogManager* log = Ogre::LogManager::getSingletonPtr( );
+    if( log != nullptr )
+      log->logError( e.what( ) );
+    std::cerr << "Error: " << e.what( ) << std::endl;
+    return( EXIT_FAILURE );
+  } // end try
+}
+
+/* TODO
 // Loads media/torus.scene (a red torus defined by its parametric expression)
 // and shows it with a fly camera: WASD / arrows to move, mouse to look,
 // Shift to go faster, Esc to quit.
@@ -33,11 +65,9 @@ public:
 
     // TorusApp's own media
     rgm.addResourceLocation(MEDIA_DIR, "FileSystem", Ogre::RGN_DEFAULT);
-    /* TODO
        OgreBites::ApplicationContext::locateResources();
        Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
        MEDIA_DIR, "FileSystem", Ogre::RGN_DEFAULT);
-    */
     }
 
     // Ogre itself only loads the Plugin= entries of plugins.cfg, all from PluginFolder.
@@ -134,3 +164,4 @@ int main()
     }
     return 0;
 }
+    */

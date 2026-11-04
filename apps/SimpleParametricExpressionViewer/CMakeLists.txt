@@ -2,7 +2,11 @@
 ## @author Leonardo Florez-Valencia (florez-l@javeriana.edu.co)
 ## =========================================================================
 
-add_executable(pujOgre_SimpleParametricExpressionViewer main.cxx)
+add_executable(
+  pujOgre_SimpleParametricExpressionViewer
+  Application.cxx
+  main.cxx
+  )
 target_link_libraries(
   pujOgre_SimpleParametricExpressionViewer
   PRIVATE OgreBites
