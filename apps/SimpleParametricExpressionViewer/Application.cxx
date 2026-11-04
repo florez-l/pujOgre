@@ -186,6 +186,23 @@ _loadScene( )
     =
     this->getRoot( )->getSceneManager( "scnMgr" )->getRootSceneNode( );
   root->loadChildren( this->m_SceneFile );
+
+  /* TODO
+     <userData>
+       <property name="tag" type="float" data="[value]"/>
+       ...
+     </userData>
+  */
+
+  /* TODO
+     const auto& ud = [node/entity]->getUserObjectBindings();
+     const Ogre::Any& [value] = ud.getUserAny( "[tag]" );
+     if( [value].has_value( ) )
+       Ogre::any_cast< Ogre::Real >( [value] );
+
+     bool [switch] = Ogre::any_cast< bool >( ud.getUserAny( "[tag]" ) );
+     Ogre::String [str] = Ogre::any_cast< Ogre::String >(ud.getUserAny( "[tag]" ));
+   */
 }
 
 // -------------------------------------------------------------------------
