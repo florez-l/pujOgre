@@ -22,6 +22,12 @@ find_package(
   FiltersCore FiltersSources IOLegacy IOXML
   )
 
+set(
+  pujOgre_PLUGINS
+  Plugin_pujOgreDotPPSceneCodec
+  Plugin_pujOgreVTKCodec
+  )
+
 subdirs(apps lib/pujOgre plugins)
 
 ## eof - CMakeLists.txt

@@ -3,22 +3,25 @@
 // =========================================================================
 
 #include "Application.h"
+
 #include <filesystem>
+#include <sstream>
+
 #include <Ogre.h>
 #include <OgreCameraMan.h>
 
 // -------------------------------------------------------------------------
+namespace fs = std::filesystem;
+
+// -------------------------------------------------------------------------
 Application::
 Application( int& ac, char** av )
-  : TContext( std::filesystem::path( av[ 0 ] ).filename( ).stem( ).string( ) ),
-    TListener( ),
-    m_ExecutionDir(
-      std::filesystem::canonical(
-        std::filesystem::path( av[ 0 ] ).parent_path( )
-        ).string( )
-      ),
-    m_SceneFile( av[ 1 ] )
+  : TContext( fs::path( av[ 0 ] ).filename( ).stem( ).string( ) ),
+    TListener( )
 {
+  this->m_ExecutionDir
+    = fs::canonical( fs::path( av[ 0 ] ).parent_path( ) ).string( );
+  this->m_SceneFile = av[ 1 ];
 }
 
 // -------------------------------------------------------------------------
@@ -60,9 +63,7 @@ locateResources( )
 
   std::string media_dir
     =
-    std::filesystem::canonical(
-      std::filesystem::path( this->m_SceneFile ).parent_path( )
-      ).string( );
+    fs::canonical( fs::path( this->m_SceneFile ).parent_path( ) ).string( );
   rgm->addResourceLocation( media_dir, "FileSystem", Ogre::RGN_DEFAULT );
 }
 
@@ -86,34 +87,32 @@ go( )
 }
 
 // -------------------------------------------------------------------------
+bool Application::
+keyPressed( const OgreBites::KeyboardEvent& evt )
+{
+  if( evt.keysym.sym == OgreBites::SDLK_ESCAPE )
+  {
+    this->getRoot( )->queueEndRendering( );
+    return( true );
+  }
+  else
+    return( false ); // let the camera handle everything else
+}
+
+// -------------------------------------------------------------------------
 void Application::
 _loadExtraPlugins( )
 {
-  std::string extra_plugins[]
-    =
-    { "Plugin_pujOgreDotPPSceneCodec.so", "Plugin_pujOgreVTKCodec.so" };
-    
   auto* root = this->getRoot( );
-  for( int i = 0; i < 2; ++i )
-    root->loadPlugin(
-      std::filesystem::path( this->m_ExecutionDir )
-      /
-      extra_plugins[ i ]
-      );
-
-  /* TODO
-     Ogre::String cfgPath = mFSLayer->getConfigFilePath("plugins.cfg");
-     if (!Ogre::FileSystemLayer::fileExists(cfgPath))
-     return;
-
-     Ogre::ConfigFile cfg;
-     cfg.load(cfgPath);
-     for (Ogre::String plugin : cfg.getMultiSetting("ExtraPlugin"))
-     {
-     Ogre::StringUtil::trim(plugin);
-     if (!plugin.empty())
-     getRoot()->loadPlugin(plugin);
-  */
+  std::istringstream in( pujOgre_PLUGINS );
+  std::string plugin;
+  while( std::getline( in, plugin, '|' ) )
+  {
+    std::string plg_name
+      = std::filesystem::path( this->m_ExecutionDir ) / plugin;
+    plg_name += pujOgre_SHARED_EXT;
+    root->loadPlugin( plg_name );
+  } // end while
 }
 
 // -------------------------------------------------------------------------
@@ -125,7 +124,7 @@ _initSceneManager( )
 
   auto* root = this->getRoot( );
   auto mgr = root->createSceneManager( "DefaultSceneManager", "scnMgr" );
-  // TODO: mgr->setAmbientLight( Ogre::ColourValue( 0.9, 0.9, 0.9 ) );
+  mgr->setAmbientLight( Ogre::ColourValue( 0.9, 0.9, 0.9 ) );
 
   // register our scene with the RTSS
   auto* shadergen = Ogre::RTShader::ShaderGenerator::getSingletonPtr( );
@@ -137,14 +136,48 @@ void Application::
 _configureCamera( )
 {
   auto* scnMgr = this->getRoot( )->getSceneManager( "scnMgr" );
-  auto* cam = scnMgr->getCameras( ).begin( )->second;
+  Ogre::Camera* cam = scnMgr->getCameras( ).begin( )->second;
+
+  // If no camera, create one
+  if( cam == nullptr )
+  {
+    Ogre::SceneNode* root = scnMgr->getRootSceneNode( );
+    root->_update( true, false );
+    Ogre::AxisAlignedBox box;
+    Self::_bounds( root, &box );
+
+    Ogre::Vector3 corner = box.getMaximum( );
+    Ogre::Vector3 target = box.getCenter( );
+    Ogre::Real size = std::max< Ogre::Real >( box.getSize( ).length( ), 1e-3f );
+    Ogre::Vector3 dir = corner - target;
+    if( dir.squaredLength( ) < 1e-12f )
+      dir = Ogre::Vector3( 1, 1, 1 );
+    Ogre::Vector3 eye = target + ( dir * 2.f );
+    
+    cam = scnMgr->createCamera( "MainCamera" );
+    cam->setNearClipDistance( size * 0.001f );
+    cam->setFarClipDistance( ( eye - target ).length( ) + ( size * 2 ) );
+    cam->setFOVy( Ogre::Degree( 45 ) );
+
+    Ogre::SceneNode* camNode
+      =
+      scnMgr->getRootSceneNode( )->createChildSceneNode( "MainCameraNode" );
+    camNode->setFixedYawAxis( true );
+    camNode->setPosition( eye );
+    camNode->lookAt( target, Ogre::Node::TS_WORLD );
+    camNode->attachObject( cam );
+  } // end if
+  
   cam->setAutoAspectRatio( true );
 
   auto* camman = new OgreBites::CameraMan( cam->getParentSceneNode( ) );
   camman->setStyle( OgreBites::CS_ORBIT );
   this->addInputListener( camman );
-  this->getRenderWindow( )->addViewport( cam );
+  this->setWindowGrab( true );
+  Ogre::Viewport* vp = this->getRenderWindow( )->addViewport( cam );
+  vp->setBackgroundColour( Ogre::ColourValue( 0.5f, 0.5f, 0.52f ) );
 }
+
 // -------------------------------------------------------------------------
 void Application::
 _loadScene( )
@@ -153,6 +186,21 @@ _loadScene( )
     =
     this->getRoot( )->getSceneManager( "scnMgr" )->getRootSceneNode( );
   root->loadChildren( this->m_SceneFile );
+}
+
+// -------------------------------------------------------------------------
+void Application::
+_bounds( Ogre::SceneNode* node, Ogre::AxisAlignedBox* box )
+{
+  for( Ogre::MovableObject* obj: node->getAttachedObjects( ) )
+  {
+    const Ogre::String& type = obj->getMovableType( );
+    if( obj->isVisible( ) && type != "Camera" && type != "Light" )
+      box->merge( obj->getWorldBoundingBox( true ) );
+  } // end for
+
+  for( Ogre::Node* child: node->getChildren( ) )
+    Self::_bounds( static_cast< Ogre::SceneNode* >( child ), box );
 }
 
 // eof - Application.cxx

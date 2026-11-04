@@ -14,6 +14,7 @@ class Application
     public OgreBites::InputListener
 {
 public:
+  using Self      = Application;
   using TContext  = OgreBites::ApplicationContext;
   using TListener = OgreBites::InputListener;
 
@@ -26,6 +27,9 @@ public:
   virtual void locateResources( ) override;
   virtual void setup( ) override;
 
+  // Interactions
+  virtual bool keyPressed( const OgreBites::KeyboardEvent& evt ) override;
+
   // Main method
   void go( );
 
@@ -34,6 +38,7 @@ protected:
   void _initSceneManager( );
   void _configureCamera( );
   void _loadScene( );
+  static void _bounds( Ogre::SceneNode* node, Ogre::AxisAlignedBox* box );
 
 protected:
   std::string m_ExecutionDir { "" };
