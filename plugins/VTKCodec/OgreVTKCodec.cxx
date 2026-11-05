@@ -9,7 +9,7 @@
 // or in code:              root->loadPlugin("Plugin_VtkCodec");
 
 #include <pujOgre/vtkPolyData2OgreMesh.h>
-#include <plugins/OgreVTKCodec/Export.h>
+#include <plugins/VTKCodec/Export.h>
 
 #include <vector>
 
