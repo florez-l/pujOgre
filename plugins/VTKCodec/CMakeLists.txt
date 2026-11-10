@@ -5,7 +5,7 @@
 # Source code
 set(_name Plugin_pujOgreVTKCodec)
 set(_hdr)
-set(_src OgreVTKCodec.cxx)
+set(_src VTKCodec.cxx)
 
 # Build library
 include_directories(

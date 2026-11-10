@@ -13,9 +13,14 @@
 #include <OgrePlugin.h>
 #include <OgreCodec.h>
 #include <OgreMesh.h>
+#include <OgreNode.h>
 
 // Forward declarations
-namespace pugi { class xml_node; }
+namespace pugi
+{
+  class xml_document;
+  class xml_node;
+} // end namespace
 namespace Ogre
 {
   class SceneManager;
@@ -78,8 +83,14 @@ namespace Ogre
       pugi::xml_node& XMLNode, Ogre::SceneNode* pParent
       );
     void processParametricSurfaceDefinitions( pugi::xml_node& XMLNode );
+    Ogre::Node::TransformSpace parseTransformSpace(
+      const pugi::xml_node& XMLNode
+      );
     Ogre::MeshPtr createParametricMesh(
       pugi::xml_node& XMLNode, const Ogre::String& name
+      );
+    void registerParametricDefinition(
+      const Ogre::String& name, const pugi::xml_node& XMLNode
       );
     void processNodeAnimations(
       pugi::xml_node& XMLNode, Ogre::SceneNode* pParent
@@ -110,6 +121,8 @@ namespace Ogre
     Ogre::String m_sGroupName;
     Ogre::ColourValue m_BackgroundColour;
     Ogre::String m_ItemPrefix;
+    std::map< Ogre::String, std::shared_ptr< pugi::xml_document > >
+    m_ParametricDefs;
   };
 
   /**

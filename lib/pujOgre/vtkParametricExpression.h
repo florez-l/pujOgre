@@ -40,7 +40,7 @@ namespace pujOgre
     static vtkParametricExpression* New( );
     vtkTypeMacro( vtkParametricExpression, vtkParametricFunction );
 
-    virtual int GetDimension( ) override { return( 2 ); }
+    virtual int GetDimension( ) override;
 
     void SetPointExpressions(
       const std::string& x, const std::string& y, const std::string& z
@@ -55,30 +55,28 @@ namespace pujOgre
     virtual void Evaluate(
       double uvw[ 3 ], double Pt[ 3 ], double Duvw[ 9 ]
       ) override;
-    virtual double EvaluateScalar( double*, double*, double* ) override
-      {
-        return( 0.0 );
-      }
+    virtual double EvaluateScalar( double*, double*, double* ) override;
 
   protected:
     vtkParametricExpression( );
     virtual ~vtkParametricExpression( ) override;
 
+    void _Point( double u, double v, double P[ 3 ] );
+    static double _Scalar( vtkFunctionParser* parser, double u, double v );
+
   private:
     vtkParametricExpression( const vtkParametricExpression& ) = delete;
     void operator=( const vtkParametricExpression& ) = delete;
 
-    void evalPoint( double u, double v, double P[ 3 ] );
-    static double evalScalar( vtkFunctionParser* parser, double u, double v );
+  protected:
+    std::string m_PointExpr[ 3 ];
+    std::string m_NormalExpr[ 3 ];
+    bool m_HasNormals = false;
+    bool m_Compiled = false;
+    std::map< std::string, double > m_Constants;
 
-    std::string mPointExpr[ 3 ];
-    std::string mNormalExpr[ 3 ];
-    bool mHasNormals = false;
-    bool mCompiled = false;
-    std::map< std::string, double > mConstants;
-
-    vtkSmartPointer< vtkFunctionParser > mPoint[ 3 ];
-    vtkSmartPointer< vtkFunctionParser > mNormal[ 3 ];
+    vtkSmartPointer< vtkFunctionParser > m_Point[ 3 ];
+    vtkSmartPointer< vtkFunctionParser > m_Normal[ 3 ];
   };
 } // end namespace
 #endif // __pujOgre__vtkParametricExpression__h__

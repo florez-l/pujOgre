@@ -15,23 +15,10 @@
 namespace pujOgre { vtkStandardNewMacro( vtkParametricExpression ); }
 
 // -------------------------------------------------------------------------
-pujOgre::vtkParametricExpression::
-vtkParametricExpression( )
+int pujOgre::vtkParametricExpression::
+GetDimension( )
 {
-  this->MinimumU = 0.0;
-  this->MaximumU = 1.0;
-  this->MinimumV = 0.0;
-  this->MaximumV = 1.0;
-  this->JoinU = 0;
-  this->JoinV = 0;
-  this->DerivativesAvailable = 1; // we always provide Du/Dv (numerical or from normals)
-  mConstants["pi"] = vtkMath::Pi();
-}
-
-// -------------------------------------------------------------------------
-pujOgre::vtkParametricExpression::
-~vtkParametricExpression( )
-{
+  return( 2 );
 }
 
 // -------------------------------------------------------------------------
@@ -40,10 +27,10 @@ SetPointExpressions(
   const std::string& x, const std::string& y, const std::string& z
   )
 {
-  mPointExpr[ 0 ] = x;
-  mPointExpr[ 1 ] = y;
-  mPointExpr[ 2 ] = z;
-  mCompiled = false;
+  this->m_PointExpr[ 0 ] = x;
+  this->m_PointExpr[ 1 ] = y;
+  this->m_PointExpr[ 2 ] = z;
+  this->m_Compiled = false;
   this->Modified( );
 }
 
@@ -53,11 +40,11 @@ SetNormalExpressions(
   const std::string& nx, const std::string& ny, const std::string& nz
   )
 {
-  mNormalExpr[ 0 ] = nx;
-  mNormalExpr[ 1 ] = ny;
-  mNormalExpr[ 2 ] = nz;
-  mHasNormals = !( nx.empty( ) && ny.empty( ) && nz.empty( ) );
-  mCompiled = false;
+  this->m_NormalExpr[ 0 ] = nx;
+  this->m_NormalExpr[ 1 ] = ny;
+  this->m_NormalExpr[ 2 ] = nz;
+  this->m_HasNormals = !( nx.empty( ) && ny.empty( ) && nz.empty( ) );
+  this->m_Compiled = false;
   this->Modified( );
 }
 
@@ -69,8 +56,8 @@ SetConstant( const std::string& name, double value )
     throw std::runtime_error(
       "'u' and 'v' are reserved and cannot be used as constant names"
       );
-  mConstants[ name ] = value;
-  mCompiled = false;
+  this->m_Constants[ name ] = value;
+  this->m_Compiled = false;
   this->Modified( );
 }
 
@@ -89,7 +76,7 @@ Compile( )
     auto parser = vtkSmartPointer< vtkFunctionParser >::New( );
     parser->SetScalarVariableValue( "u", 0.0 );
     parser->SetScalarVariableValue( "v", 0.0 );
-    for( const auto& c : mConstants )
+    for( const auto& c : this->m_Constants )
       parser->SetScalarVariableValue( c.first, c.second );
     parser->ReplaceInvalidValuesOn( );
     parser->SetReplacementValue( 0.0 );
@@ -102,48 +89,31 @@ Compile( )
   };
 
   for( int i = 0; i < 3; ++i )
-    mPoint[ i ] = make( mPointExpr[ i ], labels[ i ] );
+    this->m_Point[ i ] = make( this->m_PointExpr[ i ], labels[ i ] );
 
   for( int i = 0; i < 3; ++i )
-    mNormal[ i ]
+    this->m_Normal[ i ]
       =
-      ( mHasNormals )
-      ? make( mNormalExpr[ i ], labels[ i + 3 ] )
+      ( this->m_HasNormals )
+      ? make( this->m_NormalExpr[ i ], labels[ i + 3 ] )
       : nullptr;
-  mCompiled = true;
-}
-
-// -------------------------------------------------------------------------
-double pujOgre::vtkParametricExpression::
-evalScalar( vtkFunctionParser* parser, double u, double v )
-{
-  parser->SetScalarVariableValue( "u", u );
-  parser->SetScalarVariableValue( "v", v );
-  return( parser->GetScalarResult( ) );
-}
-
-// -------------------------------------------------------------------------
-void pujOgre::vtkParametricExpression::
-evalPoint( double u, double v, double P[ 3 ] )
-{
-  for( int i = 0; i < 3; ++i )
-    P[ i ] = evalScalar( mPoint[ i ], u, v );
+  this->m_Compiled = true;
 }
 
 // -------------------------------------------------------------------------
 void pujOgre::vtkParametricExpression::
 Evaluate( double uvw[ 3 ], double Pt[ 3 ], double Duvw[ 9 ] )
 {
-  if( !mCompiled )
-    Compile( );
+  if( !this->m_Compiled )
+    this->Compile( );
 
   const double u = uvw[ 0 ];
   const double v = uvw[ 1 ];
   double* Du = Duvw;
   double* Dv = Duvw + 3;
   Duvw[ 6 ] = Duvw[ 7 ] = Duvw[ 8 ] = 0.0;
-  evalPoint( u, v, Pt );
-  if( mHasNormals )
+  this->_Point( u, v, Pt );
+  if( this->m_HasNormals )
   {
     // vtkParametricFunctionSource computes the normal as Du x Dv
     // (clockwise ordering) or Dv x Du (anticlockwise). Choose a tangent
@@ -151,7 +121,7 @@ Evaluate( double uvw[ 3 ], double Pt[ 3 ], double Duvw[ 9 ] )
     // output normals are the expression's normals.
     double n[ 3 ];
     for( int i = 0; i < 3; ++i )
-      n[ i ] = evalScalar( mNormal[ i ], u, v );
+      n[ i ] = this->_Scalar( this->m_Normal[ i ], u, v );
 
     if( vtkMath::Normalize( n ) == 0.0 )
     {
@@ -177,15 +147,59 @@ Evaluate( double uvw[ 3 ], double Pt[ 3 ], double Duvw[ 9 ] )
     = 1e-5 * std::max( 1e-12, std::abs( this->MaximumV - this->MinimumV ) );
   double p0[ 3 ], p1[ 3 ];
 
-  evalPoint( u - hu, v, p0 );
-  evalPoint( u + hu, v, p1 );
+  this->_Point( u - hu, v, p0 );
+  this->_Point( u + hu, v, p1 );
   for( int i = 0; i < 3; ++i )
     Du[ i ] = ( p1[ i ] - p0[ i ] ) / ( 2.0 * hu );
 
-  evalPoint( u, v - hv, p0 );
-  evalPoint( u, v + hv, p1 );
+  this->_Point( u, v - hv, p0 );
+  this->_Point( u, v + hv, p1 );
   for( int i = 0; i < 3; ++i )
     Dv[ i ] = ( p1[ i ] - p0[ i ] ) / ( 2.0 * hv );
+}
+
+// -------------------------------------------------------------------------
+double pujOgre::vtkParametricExpression::
+EvaluateScalar( double*, double*, double* )
+{
+  return( double( 0 ) );
+}
+
+// -------------------------------------------------------------------------
+pujOgre::vtkParametricExpression::
+vtkParametricExpression( )
+{
+  this->MinimumU = 0.0;
+  this->MaximumU = 1.0;
+  this->MinimumV = 0.0;
+  this->MaximumV = 1.0;
+  this->JoinU = 0;
+  this->JoinV = 0;
+  this->DerivativesAvailable = 1;
+  this->m_Constants[ "pi" ] = vtkMath::Pi( );
+}
+
+// -------------------------------------------------------------------------
+pujOgre::vtkParametricExpression::
+~vtkParametricExpression( )
+{
+}
+
+// -------------------------------------------------------------------------
+double pujOgre::vtkParametricExpression::
+_Scalar( vtkFunctionParser* parser, double u, double v )
+{
+  parser->SetScalarVariableValue( "u", u );
+  parser->SetScalarVariableValue( "v", v );
+  return( parser->GetScalarResult( ) );
+}
+
+// -------------------------------------------------------------------------
+void pujOgre::vtkParametricExpression::
+_Point( double u, double v, double P[ 3 ] )
+{
+  for( int i = 0; i < 3; ++i )
+    P[ i ] = this->_Scalar( this->m_Point[ i ], u, v );
 }
 
 // eof - vtkParametricExpression.cxx

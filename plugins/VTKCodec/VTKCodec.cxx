@@ -34,13 +34,13 @@ namespace
   {
   public:
     explicit pujOgreVTKCodec( const Ogre::String& extension )
-      : mType( extension )
+      : m_Type( extension )
       {
       }
 
     virtual Ogre::String getType( ) const override
       {
-        return( this->mType );
+        return( this->m_Type );
       }
 
     virtual
@@ -60,7 +60,7 @@ namespace
       const std::string data = input->getAsString( );
 
       vtkSmartPointer< vtkPolyData > polyData;
-      if( this->mType == "vtp" )
+      if( this->m_Type == "vtp" )
       {
         auto reader = vtkSmartPointer< vtkXMLPolyDataReader >::New( );
         reader->ReadFromInputStringOn( );
@@ -90,13 +90,12 @@ namespace
 
       // Material can be changed later with entity->setMaterialName(...)
       pujOgre::FillOgreMeshFromvtkPolyData(
-        polyData, mesh, "BaseWhite",
-        /*generateNormalsIfMissing=*/true, /*flipV=*/true
+        polyData, mesh, "BaseWhite", true, true
         );
     }
 
   private:
-    Ogre::String mType;
+    Ogre::String m_Type;
   };
 
   /**
@@ -117,7 +116,7 @@ namespace
         {
           auto* codec = new pujOgreVTKCodec( ext );
           Ogre::Codec::registerCodec( codec );
-          this->mCodecs.push_back( codec );
+          this->m_Codecs.push_back( codec );
         } // end for
       }
 
@@ -126,16 +125,16 @@ namespace
 
     virtual void uninstall( ) override
     {
-      for( auto* codec: this->mCodecs )
+      for( auto* codec: this->m_Codecs )
       {
         Ogre::Codec::unregisterCodec( codec );
         delete codec;
       } // end for
-      this->mCodecs.clear( );
+      this->m_Codecs.clear( );
     }
 
   private:
-    std::vector< Ogre::Codec* > mCodecs;
+    std::vector< Ogre::Codec* > m_Codecs;
   };
 
   pujOgreVTKPlugin* gPlugin = nullptr;
@@ -156,4 +155,4 @@ extern "C" void Plugin_pujOgreVTKCodec_EXPORT dllStopPlugin( )
   gPlugin = nullptr;
 }
 
-// eof - OgreVTKCodec.cxx
+// eof - VTKCodec.cxx

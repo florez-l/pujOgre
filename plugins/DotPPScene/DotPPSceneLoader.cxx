@@ -885,48 +885,67 @@ namespace
 void Ogre::DotPPSceneLoader::
 processParametricSurface( pugi::xml_node& XMLNode, Ogre::SceneNode* pParent )
 {
-  Ogre::String name = getAttrib( XMLNode, "name" );
-  Ogre::String ref = getAttrib( XMLNode, "ref" );
-  Ogre::String entityName = name.empty( ) ? "ParametricSurface" + Ogre::StringConverter::toString( gParametricAutoName++ ) : name;
+  Ogre::String name = getAttrib(XMLNode, "name");
+  Ogre::String ref = getAttrib(XMLNode, "ref");
+  Ogre::String entityName = name.empty() ? "ParametricSurface" + StringConverter::toString(gParametricAutoName++) : name;
 
-  Ogre::LogManager::getSingleton( ).logMessage( "[DotSceneLoader] Processing ParametricSurface: " + this->m_ItemPrefix +
-                                                entityName + ( ref.empty( ) ? "" : " ( ref " + ref + " )" ),
-                                                Ogre::LML_TRIVIAL );
-
-  bool castShadows = getAttribBool( XMLNode, "castShadows", true );
-  bool visible = getAttribBool( XMLNode, "visible", true );
-  Ogre::String material = getAttrib( XMLNode, "material" ); // empty: keep the mesh's material
+  Ogre::LogManager::getSingleton().logMessage("[DotSceneLoader] Processing ParametricSurface: " + this->m_ItemPrefix +
+                                              entityName + (ref.empty() ? "" : " (ref " + ref + ")"),
+                                              LML_TRIVIAL);
+  
+  bool castShadows = getAttribBool(XMLNode, "castShadows", true);
+  bool visible = getAttribBool(XMLNode, "visible", true);
+  Ogre::String material = getAttrib(XMLNode, "material"); // empty: keep the mesh's material
 
   try
   {
-    MeshPtr mesh;
-    if( !ref.empty( ) )
+    Ogre::MeshPtr mesh;
+    if (!ref.empty())
     {
-      // Instance of a surface defined elsewhere ( in <parametricSurfaces> or inline earlier )
-      mesh = MeshManager::getSingleton( ).getByName( this->m_ItemPrefix + ref + ".parametric", this->m_sGroupName );
-      if( !mesh )
-        OGRE_EXCEPT( Exception::ERR_ITEM_NOT_FOUND,
-                     "no parametric surface named '" + ref + "' has been defined before this point" );
+      const bool overrides = hasParametricOverrides(XMLNode);
+      const bool ownCopy = overrides || getAttribBool(XMLNode, "copy", false);
+
+      if (!ownCopy)
+      {
+        // Shared: every plain ref uses the same mesh
+        mesh = Ogre::MeshManager::getSingleton().getByName(this->m_ItemPrefix + ref + ".parametric", m_sGroupName);
+        if (!mesh)
+          OGRE_EXCEPT(Exception::ERR_ITEM_NOT_FOUND,
+                      "no parametric surface named '" + ref + "' has been defined before this point");
+      }
+      else
+      {
+        // Own mesh: the definition with this instance's overrides applied
+        auto def = this->m_ParametricDefs.find(ref);
+        if (def == this->m_ParametricDefs.end())
+          OGRE_EXCEPT(Exception::ERR_ITEM_NOT_FOUND,
+                      "no parametric surface named '" + ref + "' has been defined earlier in this file");
+
+        pugi::xml_document mergedDoc;
+        pugi::xml_node merged = mergeParametricSurface(def->second->first_child(), XMLNode, mergedDoc);
+        mesh = createParametricMesh(merged, this->m_ItemPrefix + entityName + ".parametric-copy");
+      }
     }
     else
     {
-      // Inline definition: builds the mesh ( or reuses one with the same name )
-      mesh = createParametricMesh( XMLNode, entityName );
+      // Inline definition: builds the mesh (or reuses one with the same name)
+      registerParametricDefinition(entityName, XMLNode);
+      mesh = createParametricMesh(XMLNode, this->m_ItemPrefix + entityName + ".parametric");
     }
 
-    Entity* ent = this->m_SceneMgr->createEntity( this->m_ItemPrefix + entityName, mesh );
-    if( !material.empty( ) )
-      ent->setMaterialName( material );
-    ent->setCastShadows( castShadows );
-    ent->setVisible( visible );
-    pParent->attachObject( ent );
+    Ogre::Entity* ent = this->m_SceneMgr->createEntity(this->m_ItemPrefix + entityName, mesh);
+    if (!material.empty())
+      ent->setMaterialName(material);
+    ent->setCastShadows(castShadows);
+    ent->setVisible(visible);
+    pParent->attachObject(ent);
 
-    if( auto pElement = XMLNode.child( "userData" ) )
-      processUserData( pElement, ent->getUserObjectBindings( ) );
+    if (auto pElement = XMLNode.child("userData"))
+      processUserData(pElement, ent->getUserObjectBindings());
   }
-  catch ( const std::exception& e ) // Ogre::Exception derives from std::exception
+  catch (const std::exception& e) // Ogre::Exception derives from std::exception
   {
-    Ogre::LogManager::getSingleton( ).logError( "[DotSceneLoader] parametricSurface '" + entityName + "': " + e.what( ) );
+    LogManager::getSingleton().logError("[DotSceneLoader] parametricSurface '" + entityName + "': " + e.what());
   }
 }
 
@@ -949,6 +968,7 @@ processParametricSurfaceDefinitions( pugi::xml_node& XMLNode )
                                                   Ogre::LML_TRIVIAL );
     try
     {
+      registerParametricDefinition(name, pElement);
       createParametricMesh( pElement, name );
     }
     catch ( const std::exception& e ) // Ogre::Exception derives from std::exception
@@ -956,6 +976,25 @@ processParametricSurfaceDefinitions( pugi::xml_node& XMLNode )
       Ogre::LogManager::getSingleton( ).logError( "[DotSceneLoader] parametricSurface '" + name + "': " + e.what( ) );
     }
   }
+}
+
+// -------------------------------------------------------------------------
+Ogre::Node::TransformSpace Ogre::DotPPSceneLoader::
+parseTransformSpace( const pugi::xml_node& XMLNode )
+{
+  Ogre::String value = getAttrib(XMLNode, "relativeTo", "parent");
+  Ogre::StringUtil::toLowerCase(value);
+
+  if (value == "local")
+    return( Ogre::Node::TS_LOCAL );
+  if (value == "world")
+    return( Ogre::Node::TS_WORLD );
+  if (value != "parent")
+    Ogre::LogManager::getSingleton().logWarning(
+      "[DotSceneLoader] unknown relativeTo='" + value + "' on <" +
+      XMLNode.name() + ">, using 'parent'"
+      );
+  return( Ogre::Node::TS_PARENT );
 }
 
 // -------------------------------------------------------------------------
@@ -973,6 +1012,18 @@ createParametricMesh( pugi::xml_node& XMLNode, const Ogre::String& name )
     polyData, meshName, getAttrib( XMLNode, "material", "BaseWhite" ),
     /*generateNormalsIfMissing=*/true, /*flipV=*/true, this->m_sGroupName
     );
+}
+
+// -------------------------------------------------------------------------
+void Ogre::DotPPSceneLoader::
+registerParametricDefinition(
+  const Ogre::String& name, const pugi::xml_node& XMLNode
+  )
+{
+  // Keep a copy of the XML, so instances can override its parameters later
+  auto doc = std::make_shared< pugi::xml_document >( );
+  doc->append_copy( XMLNode );
+  this->m_ParametricDefs[ name ] = doc;
 }
 
 // -------------------------------------------------------------------------
