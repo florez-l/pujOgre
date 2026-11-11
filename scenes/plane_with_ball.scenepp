@@ -2,7 +2,7 @@
 <scene formatVersion="1.1">
 
   <userData>
-    <property name="gravity" type="vector" data="0 -10 0"/>
+    <property name="gravity" type="vector" data="0 -9.81 0"/>
   </userData>
 
   <environment>
@@ -45,7 +45,7 @@
         <property name="restitution" type="float" data="0.8"/>
         <property name="friction" type="float" data="0.6"/>
         <property name="rolling_friction" type="float" data="0.01"/>
-        <property name="spinning_friction" type="float" data="0.01"/>
+        <property name="spinning_friction" type="float" data="0.1"/>
         <property name="linear_damping" type="float" data="0.05"/>
         <property name="angular_damping" type="float" data="0.1"/>
       </userData>
@@ -58,7 +58,7 @@
       </parametricSurface>
       <userData>
         <property name="collider" type="string" data="sphere"/>
-        <property name="mass" type="float" data="1"/>
+        <property name="mass" type="float" data="10"/>
         <property name="restitution" type="float" data="1"/>
         <property name="friction" type="float" data="0.8"/>
         <property name="rolling_friction" type="float" data="0.1"/>

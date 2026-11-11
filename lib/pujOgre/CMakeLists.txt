@@ -4,8 +4,8 @@
 
 # Source code
 set(_name pujOgre)
-set(_hdr vtkParametricExpression.h vtkPolyData2OgreMesh.h)
-set(_src vtkParametricExpression.cxx vtkPolyData2OgreMesh.cxx)
+set(_hdr FPSCamera.h vtkParametricExpression.h vtkPolyData2OgreMesh.h)
+set(_src FPSCamera.cxx vtkParametricExpression.cxx vtkPolyData2OgreMesh.cxx)
 
 # Build library
 include_directories(${PROJECT_BINARY_DIR}/lib ${PROJECT_SOURCE_DIR}/lib)
@@ -15,7 +15,7 @@ generate_export_header(
   EXPORT_MACRO_NAME ${_name}_EXPORT
   EXPORT_FILE_NAME Export.h
   )
-target_link_libraries(${_name} PUBLIC OgreMain ${VTK_LIBRARIES})
+target_link_libraries(${_name} PUBLIC OgreMain OgreBites ${VTK_LIBRARIES})
 vtk_module_autoinit(TARGETS ${_name} MODULES ${VTK_LIBRARIES})
 
 ## eof - CMakeLists.txt
