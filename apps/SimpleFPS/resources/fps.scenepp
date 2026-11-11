@@ -9,14 +9,28 @@
     <colourAmbient r="0.9" g="0.9" b="0.9"/>
   </environment>
 
+  <parametricSurfaces>
+    <parametricSurface name="Cylinder"  uResolution="96" vResolution="48">
+      <uRange min="0" max="6.283185307" join="true"/>
+      <vRange min="-0.3" max="0" join="false"/>
+      <param name="R" value="0.005"/>
+      <point  x="R*cos(u)" y="R*sin(u)" z="v"/>
+      <normal x="cos(u)"   y="sin(u)"   z="0"/>
+    </parametricSurface>
+  </parametricSurfaces>
+
   <nodes>
     <node name="Player" >
       <position x="0" y="0" z="1.7" />
-      <rotation qw="1" qx="0" qy="0" qz="0" />
-      <scale x="1" y="1" z="1" />
-      <camera fov="0.503380" name="Player" projectionType="perspective" >
+      <camera fov="0.785398163" name="Player" projectionType="perspective" >
         <clipping far="10000" near="0.01" />
       </camera>
+
+      <node name="Cannon">
+        <position x="0" y="-0.05" z="0"/>
+        <parametricSurface ref="Cylinder" material="Cannon"/>
+      </node>
+
     </node>
 
     <node name="Ground">
@@ -42,6 +56,66 @@
           >
         <normal x="0" y="-1" z="0"/>
         <upVector x="0" y="0" z="1"/>
+      </plane>
+      <userData>
+        <property name="mass" type="float" data="0"/>
+      </userData>
+    </node>
+
+    <node name="Wall_1">
+      <position x="-10" y="0" z="0"/>
+      <plane
+          name="Wall_1_Plane" distance="0" width="20" height="20"
+          xSegments="20" ySegments="20" numTexCoordSets="1"
+          uTile="4" vTile="4" hasNormals="true" material="Wall"
+          >
+        <normal x="1" y="0" z="0"/>
+        <upVector x="0" y="-1" z="0"/>
+      </plane>
+      <userData>
+        <property name="mass" type="float" data="0"/>
+      </userData>
+    </node>
+
+    <node name="Wall_2">
+      <position x="10" y="0" z="0"/>
+      <plane
+          name="Wall_2_Plane" distance="0" width="20" height="20"
+          xSegments="20" ySegments="20" numTexCoordSets="1"
+          uTile="4" vTile="4" hasNormals="true" material="Wall"
+          >
+        <normal x="-1" y="0" z="0"/>
+        <upVector x="0" y="1" z="0"/>
+      </plane>
+      <userData>
+        <property name="mass" type="float" data="0"/>
+      </userData>
+    </node>
+
+    <node name="Wall_3">
+      <position x="0" y="0" z="-10"/>
+      <plane
+          name="Wall_3_Plane" distance="0" width="20" height="20"
+          xSegments="20" ySegments="20" numTexCoordSets="1"
+          uTile="4" vTile="4" hasNormals="true" material="Wall"
+          >
+        <normal x="0" y="0" z="-1"/>
+        <upVector x="1" y="0" z="0"/>
+      </plane>
+      <userData>
+        <property name="mass" type="float" data="0"/>
+      </userData>
+    </node>
+
+    <node name="Wall_4">
+      <position x="0" y="0" z="10"/>
+      <plane
+          name="Wall_4_Plane" distance="0" width="20" height="20"
+          xSegments="20" ySegments="20" numTexCoordSets="1"
+          uTile="4" vTile="4" hasNormals="true" material="Wall"
+          >
+        <normal x="0" y="0" z="1"/>
+        <upVector x="-1" y="0" z="0"/>
       </plane>
       <userData>
         <property name="mass" type="float" data="0"/>

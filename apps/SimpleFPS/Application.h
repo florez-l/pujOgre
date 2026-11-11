@@ -6,6 +6,7 @@
 
 #include <string>
 #include <OgreApplicationContext.h>
+#include <pujOgre/FPSCamera.h>
 #include "Model.h"
 
 /**
@@ -30,6 +31,7 @@ public:
 
   // Interactions
   virtual bool keyPressed( const OgreBites::KeyboardEvent& evt ) override;
+  virtual bool mousePressed( const OgreBites::MouseButtonEvent& evt ) override;
 
   // Animation
   virtual void frameRendered( const Ogre::FrameEvent& evt ) override;
@@ -47,6 +49,7 @@ protected:
 protected:
   std::string m_ExecutionDir { "" };
   Model m_Model;
+  pujOgre::FPSCamera* m_CameraMan { nullptr };
 };
 
 #endif // __SolarSystem__Application__h__

@@ -10,8 +10,6 @@
 
 #include <Ogre.h>
 
-#include <pujOgre/FPSCamera.h>
-
 // -------------------------------------------------------------------------
 namespace fs = std::filesystem;
 
@@ -100,6 +98,29 @@ keyPressed( const OgreBites::KeyboardEvent& evt )
 }
 
 // -------------------------------------------------------------------------
+bool Application::
+mousePressed( const OgreBites::MouseButtonEvent& evt )
+{
+  if( evt.button == OgreBites::BUTTON_LEFT )
+  {
+    Ogre::Vector3 pos
+      =
+      this->m_CameraMan->getBodyNode( )->_getDerivedPosition( );
+    Ogre::Vector3 dir
+      =
+      this->m_CameraMan->getBodyNode( )->_getDerivedOrientation( )
+      *
+      Ogre::Vector3::NEGATIVE_UNIT_Z;
+
+    // TODO: shoot!
+    
+    return( true );
+  }
+  else
+    return( false );
+}
+
+// -------------------------------------------------------------------------
 void Application::
 frameRendered( const Ogre::FrameEvent& evt )
 {
@@ -144,42 +165,12 @@ _configureCamera( )
 {
   auto* scnMgr = this->getRoot( )->getSceneManager( "scnMgr" );
   Ogre::Camera* cam = scnMgr->getCameras( ).begin( )->second;
-
-  // If no camera, create one
-  if( cam == nullptr )
-  {
-    Ogre::SceneNode* root = scnMgr->getRootSceneNode( );
-    root->_update( true, false );
-    Ogre::AxisAlignedBox box;
-    Self::_bounds( root, &box );
-
-    Ogre::Vector3 corner = box.getMaximum( );
-    Ogre::Vector3 target = box.getCenter( );
-    Ogre::Real size = std::max< Ogre::Real >( box.getSize( ).length( ), 1e-3f );
-    Ogre::Vector3 dir = corner - target;
-    if( dir.squaredLength( ) < 1e-12f )
-      dir = Ogre::Vector3( 1, 1, 1 );
-    Ogre::Vector3 eye = target + ( dir * 2.f );
-
-    cam = scnMgr->createCamera( "MainCamera" );
-    cam->setNearClipDistance( size * 0.001f );
-    cam->setFarClipDistance( ( eye - target ).length( ) + ( size * 200 ) );
-    cam->setFOVy( Ogre::Degree( 45 ) );
-
-    Ogre::SceneNode* camNode
-      =
-      scnMgr->getRootSceneNode( )->createChildSceneNode( "MainCameraNode" );
-    camNode->setFixedYawAxis( true );
-    camNode->setPosition( eye );
-    camNode->lookAt( target, Ogre::Node::TS_WORLD );
-    camNode->attachObject( cam );
-  } // end if
   cam->setAutoAspectRatio( true );
 
   Ogre::SceneNode* floor = scnMgr->getSceneNode( "Ground", false );
-  auto* camman = new pujOgre::FPSCamera( cam, floor );
-  camman->setWalkSpeed( 3 );
-  this->addInputListener( camman );
+  this->m_CameraMan = new pujOgre::FPSCamera( cam, floor );
+  this->m_CameraMan->setWalkSpeed( 3 );
+  this->addInputListener( this->m_CameraMan );
 
   this->setWindowGrab( true );
   Ogre::Viewport* vp = this->getRenderWindow( )->addViewport( cam );

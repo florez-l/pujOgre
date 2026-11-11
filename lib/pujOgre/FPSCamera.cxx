@@ -32,12 +32,19 @@ setCamera( Ogre::Camera* camera, Ogre::SceneNode* floor )
   // Current camera pose, in the floor's local space
   Ogre::Vector3 worldPos = Ogre::Vector3::ZERO;
   Ogre::Vector3 worldDir = Ogre::Vector3::NEGATIVE_UNIT_Z;
-  if( Ogre::SceneNode* old = camera->getParentSceneNode( ) )
+  std::vector< Ogre::Node* > followers;
+  Ogre::SceneNode* old = camera->getParentSceneNode( );
+  if( old )
   {
     worldPos = old->_getDerivedPosition( );
     worldDir = old->_getDerivedOrientation( ) * Ogre::Vector3::NEGATIVE_UNIT_Z;
     camera->detachFromParent( );
-  }
+    followers.assign(
+      old->getChildren( ).begin( ), old->getChildren( ).end( )
+      );
+    for( Ogre::Node* follower: followers )
+      old->removeChild( follower );
+  } // end if
   Ogre::Vector3 pos = floor->convertWorldToLocalPosition( worldPos );
   Ogre::Vector3 dir
     =
@@ -53,6 +60,8 @@ setCamera( Ogre::Camera* camera, Ogre::SceneNode* floor )
   this->m_Head = this->m_Body->createChildSceneNode( );
   this->m_Head->attachObject( camera );
   this->m_Camera = camera;
+  for( Ogre::Node* follower: followers )
+    this->m_Head->addChild( follower );
 
   this->m_Yaw = Ogre::Math::ATan2( -dir.x, -dir.z );
   this->m_Pitch = Ogre::Math::ASin(
