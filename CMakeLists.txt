@@ -15,6 +15,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
 include(GenerateExportHeader)
 
 find_package(OGRE REQUIRED)
+find_package(Bullet REQUIRED)
 find_package(
   VTK QUIET
   COMPONENTS
