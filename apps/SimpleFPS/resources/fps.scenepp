@@ -17,6 +17,14 @@
       <point  x="R*cos(u)" y="R*sin(u)" z="v"/>
       <normal x="cos(u)"   y="sin(u)"   z="0"/>
     </parametricSurface>
+
+    <parametricSurface name="Sphere" uResolution="16" vResolution="16">
+      <uRange min="0" max="3.141592653" join="true"/>
+      <vRange min="0" max="6.283185307" join="true"/>
+      <param name="R" value="1"/>
+      <point  x="R*sin(u)*cos(v)" y="R*sin(u)*sin(v)" z="R*cos(u)"/>
+      <normal x="sin(u)*cos(v)"   y="sin(u)*sin(v)"   z="cos(u)"/>
+    </parametricSurface>
   </parametricSurfaces>
 
   <nodes>
@@ -31,93 +39,104 @@
         <parametricSurface ref="Cylinder" material="Cannon"/>
       </node>
 
+      <node>
+        <light name="FlashLight" type="point">
+          <colourDiffuse r="0.7" g="0.7" b="0.7"/>
+          <colourSpecular r="0.3" g="0.3" b="0.3"/>
+        </light>
+      </node>
     </node>
 
     <node name="Ground">
       <plane
           name="GroundPlane" distance="0" width="20" height="20"
-          xSegments="20" ySegments="20" numTexCoordSets="1"
+          xSegments="1" ySegments="1" numTexCoordSets="1"
           uTile="4" vTile="4" hasNormals="true" material="Ground"
           >
         <normal x="0" y="1" z="0"/>
         <upVector x="0" y="0" z="-1"/>
       </plane>
       <userData>
+        <property name="collider" type="string" data="box"/>
         <property name="mass" type="float" data="0"/>
       </userData>
     </node>
 
     <node name="Ceiling">
-      <position x="0" y="5" z="0"/>
       <plane
-          name="CeilingPlane" distance="0" width="20" height="20"
-          xSegments="20" ySegments="20" numTexCoordSets="1"
+          name="CeilingPlane" distance="-10" width="20" height="20"
+          xSegments="1" ySegments="1" numTexCoordSets="1"
           uTile="4" vTile="4" hasNormals="true" material="Ceiling"
           >
         <normal x="0" y="-1" z="0"/>
         <upVector x="0" y="0" z="1"/>
       </plane>
       <userData>
+        <property name="collider" type="string" data="box"/>
         <property name="mass" type="float" data="0"/>
       </userData>
     </node>
 
     <node name="Wall_1">
-      <position x="-10" y="0" z="0"/>
       <plane
-          name="Wall_1_Plane" distance="0" width="20" height="20"
-          xSegments="20" ySegments="20" numTexCoordSets="1"
+          name="Wall_1Plane" distance="-10" width="20" height="10"
+          xSegments="1" ySegments="1" numTexCoordSets="1"
           uTile="4" vTile="4" hasNormals="true" material="Wall"
           >
         <normal x="1" y="0" z="0"/>
-        <upVector x="0" y="-1" z="0"/>
+        <upVector x="0" y="1" z="0"/>
       </plane>
+      <position x="0" y="5" z="0"/>
       <userData>
+        <property name="collider" type="string" data="box"/>
         <property name="mass" type="float" data="0"/>
       </userData>
     </node>
 
     <node name="Wall_2">
-      <position x="10" y="0" z="0"/>
       <plane
-          name="Wall_2_Plane" distance="0" width="20" height="20"
-          xSegments="20" ySegments="20" numTexCoordSets="1"
+          name="Wall_2Plane" distance="-10" width="20" height="10"
+          xSegments="1" ySegments="1" numTexCoordSets="1"
           uTile="4" vTile="4" hasNormals="true" material="Wall"
           >
         <normal x="-1" y="0" z="0"/>
-        <upVector x="0" y="1" z="0"/>
+        <upVector x="0" y="-1" z="0"/>
       </plane>
+      <position x="0" y="5" z="0"/>
       <userData>
+        <property name="collider" type="string" data="box"/>
         <property name="mass" type="float" data="0"/>
       </userData>
     </node>
 
     <node name="Wall_3">
-      <position x="0" y="0" z="-10"/>
       <plane
-          name="Wall_3_Plane" distance="0" width="20" height="20"
-          xSegments="20" ySegments="20" numTexCoordSets="1"
+          name="Wall_3Plane" distance="-10" width="10" height="20"
+          xSegments="1" ySegments="1" numTexCoordSets="1"
           uTile="4" vTile="4" hasNormals="true" material="Wall"
           >
-        <normal x="0" y="0" z="-1"/>
+        <normal x="0" y="0" z="1"/>
         <upVector x="1" y="0" z="0"/>
       </plane>
+      <position x="0" y="5" z="0"/>
       <userData>
+        <property name="collider" type="string" data="box"/>
         <property name="mass" type="float" data="0"/>
       </userData>
     </node>
 
     <node name="Wall_4">
-      <position x="0" y="0" z="10"/>
       <plane
-          name="Wall_4_Plane" distance="0" width="20" height="20"
-          xSegments="20" ySegments="20" numTexCoordSets="1"
+          name="Wall_4Plane" distance="-10" width="10" height="20"
+          xSegments="1" ySegments="1" numTexCoordSets="1"
           uTile="4" vTile="4" hasNormals="true" material="Wall"
           >
-        <normal x="0" y="0" z="1"/>
+        <normal x="0" y="0" z="-1"/>
         <upVector x="-1" y="0" z="0"/>
       </plane>
+      <position x="0" y="5" z="0"/>
       <userData>
+        <property name="collider" type="string" data="box"/>
         <property name="mass" type="float" data="0"/>
       </userData>
     </node>

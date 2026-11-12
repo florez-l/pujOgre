@@ -37,13 +37,6 @@ Model::
 
 // -------------------------------------------------------------------------
 void Model::
-toggle_simulation( )
-{
-  this->m_Simulating = !( this->m_Simulating );
-}
-
-// -------------------------------------------------------------------------
-void Model::
 build( Ogre::SceneNode* root )
 {
   const Ogre::UserObjectBindings& sd = root->getUserObjectBindings( );
@@ -83,21 +76,17 @@ build( Ogre::SceneNode* root )
         q.push( static_cast< Ogre::SceneNode* >( child ) );
     } // end if
   } // end while
-
-  this->m_Simulating = false;
 }
 
 // -------------------------------------------------------------------------
 void Model::
 update( double t )
 {
-  if( this->m_Simulating )
-  {
-    this->m_DynWorld->getBtWorld( )->stepSimulation( t, 10 );
-  } // end if
+  this->m_DynWorld->getBtWorld( )->stepSimulation( t, 10 );
 }
 
 // -------------------------------------------------------------------------
+#include <iostream>
 void Model::
 _configure( Ogre::Entity* e, const Ogre::UserObjectBindings& b )
 {
@@ -124,6 +113,7 @@ _configure( Ogre::Entity* e, const Ogre::UserObjectBindings& b )
   {
     Ogre::String str = Ogre::any_cast< Ogre::String >( collider_d );
     Ogre::StringUtil::toLowerCase( str );
+    std::cout << "***** " << str << std::endl;
     if     ( str ==      "box" ) collider = Ogre::Bullet::CT_BOX;
     else if( str ==  "capsule" ) collider = Ogre::Bullet::CT_CAPSULE;
     else if( str == "compound" ) collider = Ogre::Bullet::CT_COMPOUND;
@@ -132,6 +122,7 @@ _configure( Ogre::Entity* e, const Ogre::UserObjectBindings& b )
     else if( str ==   "sphere" ) collider = Ogre::Bullet::CT_SPHERE;
     else                         collider = Ogre::Bullet::CT_TRIMESH;
   } // end if
+  std::cout << "***** " << collider << " " << Ogre::Bullet::CT_TRIMESH << std::endl;
 
   btRigidBody* body = this->m_DynWorld->addRigidBody( mass, e, collider );
   body->setRestitution( restitution );
