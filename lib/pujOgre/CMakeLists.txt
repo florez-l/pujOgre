@@ -6,14 +6,18 @@
 set(_name pujOgre)
 set(
   _hdr
+  ApplicationWithBullet.h
   BaseApplication.h
+  BulletModel.h
   FPSCamera.h
   vtkParametricExpression.h
   vtkPolyData2OgreMesh.h
   )
 set(
   _src
+  ApplicationWithBullet.cxx
   BaseApplication.cxx
+  BulletModel.cxx
   FPSCamera.cxx
   vtkParametricExpression.cxx
   vtkPolyData2OgreMesh.cxx
@@ -27,7 +31,9 @@ generate_export_header(
   EXPORT_MACRO_NAME ${_name}_EXPORT
   EXPORT_FILE_NAME Export.h
   )
-target_link_libraries(${_name} PUBLIC OgreMain OgreBites ${VTK_LIBRARIES})
+target_link_libraries(
+  ${_name} PUBLIC OgreMain OgreBites OgreBullet ${VTK_LIBRARIES}
+  )
 list(JOIN pujOgre_PLUGINS "|" _plugins)
 target_compile_definitions(
   ${_name}
