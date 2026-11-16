@@ -4,9 +4,9 @@
 
 subdirs(
   MeshViewer
+  SceneViewer
   SimpleBulletWorld
   SimpleFPS
-  SimpleParametricExpressionViewer
   SolarSystem
   )
 

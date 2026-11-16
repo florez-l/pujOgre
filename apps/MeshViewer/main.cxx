@@ -18,6 +18,7 @@ public:
   using Superclass = pujOgre::BaseApplication;
 
 public:
+  // -----------------------------------------------------------------------
   Application( int& ac, char** av )
     : Superclass( ac, av )
     {
@@ -28,23 +29,31 @@ public:
         fs::canonical( fs::path( av[ 1 ] ).parent_path( ) ).string( );
       this->m_MeshFile = fs::path( av[ 1 ] ).filename( ).string( );
     }
+
+  // -----------------------------------------------------------------------
   virtual ~Application( ) override = default;
 
 protected:
+
+  // -----------------------------------------------------------------------
   virtual void _configureCamera( ) override
     {
       this->Superclass::_configureCamera( );
 
       auto* scnMgr = this->getRoot( )->getSceneManager( "scnMgr" );
       Ogre::Camera* cam = scnMgr->getCameras( ).begin( )->second;
+
       auto* camman = new OgreBites::CameraMan( cam->getParentSceneNode( ) );
       camman->setStyle( OgreBites::CS_ORBIT );
+
       this->addInputListener( camman );
       this->setWindowGrab( true );
+
       Ogre::Viewport* vp = this->getRenderWindow( )->addViewport( cam );
       vp->setBackgroundColour( Ogre::ColourValue( 0.5f, 0.5f, 0.52f ) );
     }
 
+  // -----------------------------------------------------------------------
   virtual void _loadScene( ) override
     {
       auto* scnMgr = this->getRoot( )->getSceneManager( "scnMgr" );
