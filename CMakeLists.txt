@@ -20,7 +20,7 @@ find_package(
   VTK QUIET
   COMPONENTS
   CommonCore CommonDataModel CommonComputationalGeometry CommonMisc
-  FiltersCore FiltersSources IOLegacy IOXML
+  FiltersCore FiltersSources IOGeometry IOLegacy IOXML
   )
 
 set(

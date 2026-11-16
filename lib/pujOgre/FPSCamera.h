@@ -34,7 +34,7 @@ namespace pujOgre
     void setGravity( Ogre::Real g );
     void setMouseSensitivity( Ogre::Real degreesPerPixel );
     void setEdgeMargin( Ogre::Real margin );
-    void setEnabled( bool enabled);
+    void setEnabled( bool enabled );
     void manualStop( );
 
     virtual bool keyPressed( const OgreBites::KeyboardEvent& evt ) override;

@@ -3,6 +3,7 @@
 ## =========================================================================
 
 subdirs(
+  MeshViewer
   SimpleBulletWorld
   SimpleFPS
   SimpleParametricExpressionViewer

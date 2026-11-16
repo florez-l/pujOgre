@@ -4,8 +4,8 @@
 
 # Source code
 set(_name Plugin_pujOgreVTKCodec)
-set(_hdr)
-set(_src VTKCodec.cxx)
+set(_hdr Codec.h Plugin.h)
+set(_src Codec.cxx Interface.cxx Plugin.cxx)
 
 # Build library
 include_directories(
