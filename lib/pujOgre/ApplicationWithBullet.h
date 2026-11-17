@@ -25,6 +25,8 @@ namespace pujOgre
     pujOgre::BulletModel* model( ) const;
     void setModel( pujOgre::BulletModel* m, bool keep_ownership = false );
 
+    virtual void frameRendered( const Ogre::FrameEvent& evt ) override;
+
   protected:
     virtual void _loadScene( ) override;
 

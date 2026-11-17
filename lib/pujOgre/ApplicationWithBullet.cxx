@@ -38,6 +38,14 @@ setModel( pujOgre::BulletModel* m, bool keep_ownership )
 
 // -------------------------------------------------------------------------
 void pujOgre::ApplicationWithBullet::
+frameRendered( const Ogre::FrameEvent& evt )
+{
+  if( this->m_Model != nullptr )
+    this->m_Model->update( evt.timeSinceLastFrame );
+}
+
+// -------------------------------------------------------------------------
+void pujOgre::ApplicationWithBullet::
 _loadScene( )
 {
   if( this->m_Model != nullptr )

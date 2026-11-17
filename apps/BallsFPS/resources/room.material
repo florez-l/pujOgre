@@ -1,0 +1,49 @@
+// Materials for cube_inside_textured.obj with the cube-net image room.png
+// (4 x 3 squares: TOP over FRONT; LEFT, FRONT, RIGHT, BACK in a row;
+// BOTTOM under FRONT).
+// Put this file and the image in a resource location, then:
+//     entity->setMaterialName("CubeInside");          // or "CubeInside/Unlit"
+
+// Lit by the scene's lights, like the walls of a room. The cube's normals
+// point inwards, so lights placed inside the cube light its inner faces.
+material room_material
+{
+    technique
+    {
+        pass
+        {
+            ambient  0.6 0.6 0.6
+            diffuse  1 1 1
+            specular 0.1 0.1 0.1 16
+
+            texture_unit
+            {
+                texture room.png
+                // The net's squares touch the image's edges: clamp so the
+                // far edge isn't blended in when filtering at u or v = 0 or 1
+                tex_address_mode clamp
+                filtering trilinear
+            }
+        }
+    }
+}
+
+// Shows the image exactly as painted, ignoring lights: for a skybox-like
+// room or for checking the mapping
+material room_material/Unlit
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+
+            texture_unit
+            {
+                texture room.png
+                tex_address_mode clamp
+                filtering trilinear
+            }
+        }
+    }
+}

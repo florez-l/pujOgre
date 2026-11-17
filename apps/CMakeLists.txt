@@ -3,11 +3,11 @@
 ## =========================================================================
 
 subdirs(
+  BallsFPS
   MeshViewer
   SceneViewer
-  SimpleBulletWorld
-  SimpleFPS
-  SolarSystem
+  SceneWithBulletViewer
+  # SolarSystem
   )
 
 ## eof - CMakeLists.txt

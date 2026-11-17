@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scene formatVersion="1.1">
+
+  <userData>
+    <property name="gravity" type="vector" data="0 -9.81 0"/>
+  </userData>
+
+  <environment>
+    <colourAmbient r="0.3" g="0.3" b="0.3"/>
+  </environment>
+ 
+  <parametricSurfaces>
+    <parametricSurface name="Sphere" uResolution="16" vResolution="16">
+      <uRange min="0" max="3.141592653" join="true"/>
+      <vRange min="0" max="6.283185307" join="true"/>
+      <param name="R" value="0.1"/>
+      <point  x="R*sin(u)*cos(v)" y="R*sin(u)*sin(v)" z="R*cos(u)"/>
+      <normal x="sin(u)*cos(v)"   y="sin(u)*sin(v)"   z="cos(u)"/>
+    </parametricSurface>
+  </parametricSurfaces>
+
+  <nodes>
+    <node name="PlayerNode" >
+      <position x="0" y="1.7" z="0" />
+      <camera fov="0.785398163" name="Player" projectionType="perspective" >
+        <clipping far="10000" near="0.01" />
+      </camera>
+    </node>
+
+    <node name="LightNode">
+      <position x="0" y="9" z="0"/>
+      <light name="MainLight" type="point">
+        <colourDiffuse  r="1" g="1" b="1"/>
+        <colourSpecular r="0.5" g="0.5" b="0.5"/>
+      </light>
+    </node>
+
+    <node name="Room">
+      <position x="0" y="5" z="0"/>
+      <scale x="20" y="10" z="20"/>
+      <entity
+          name="RoomMesh"
+          meshFile="room.obj"
+          material="room_material"
+          >
+      </entity>
+    </node>
+    <node name="BottomCollider">
+      <scale x="20" y="1" z="20"/>
+      <position x="0" y="-0.5" z="0"/>
+      <entity
+          name="BottomColliderEntity"
+          meshFile="cube.obj"
+          visible="false"
+          castShadows="false"
+          >
+      </entity>
+      <userData>
+        <property name="collider" type="string" data="box"/>
+        <property name="mass" type="float" data="0"/>
+      </userData>
+    </node>
+    <node name="TopCollider">
+      <scale x="20" y="1" z="20"/>
+      <position x="0" y="10.5" z="0"/>
+      <entity
+          name="TopColliderEntity"
+          meshFile="cube.obj"
+          visible="false"
+          castShadows="false"
+          >
+      </entity>
+      <userData>
+        <property name="collider" type="string" data="box"/>
+        <property name="mass" type="float" data="0"/>
+      </userData>
+    </node>
+    <node name="FrontCollider">
+      <scale x="20" y="10" z="1"/>
+      <position x="0" y="5" z="-10.5"/>
+      <entity
+          name="FrontColliderEntity"
+          meshFile="cube.obj"
+          visible="false"
+          castShadows="false"
+          >
+      </entity>
+      <userData>
+        <property name="collider" type="string" data="box"/>
+        <property name="mass" type="float" data="0"/>
+      </userData>
+    </node>
+    <node name="BackCollider">
+      <scale x="20" y="10" z="1"/>
+      <position x="0" y="5" z="10.5"/>
+      <entity
+          name="BackColliderEntity"
+          meshFile="cube.obj"
+          visible="false"
+          castShadows="false"
+          >
+      </entity>
+      <userData>
+        <property name="collider" type="string" data="box"/>
+        <property name="mass" type="float" data="0"/>
+      </userData>
+    </node>
+    <node name="LeftCollider">
+      <scale x="1" y="10" z="20"/>
+      <position x="-10.5" y="5" z="0"/>
+      <entity
+          name="LeftColliderEntity"
+          meshFile="cube.obj"
+          visible="false"
+          castShadows="false"
+          >
+      </entity>
+      <userData>
+        <property name="collider" type="string" data="box"/>
+        <property name="mass" type="float" data="0"/>
+      </userData>
+    </node>
+    <node name="RightCollider">
+      <scale x="1" y="10" z="20"/>
+      <position x="10.5" y="5" z="0"/>
+      <entity
+          name="RightColliderEntity"
+          meshFile="cube.obj"
+          visible="false"
+          castShadows="false"
+          >
+      </entity>
+      <userData>
+        <property name="collider" type="string" data="box"/>
+        <property name="mass" type="float" data="0"/>
+      </userData>
+    </node>
+  </nodes>
+</scene>

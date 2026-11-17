@@ -9,16 +9,16 @@
     <colourAmbient r="0.3" g="0.3" b="0.3"/>
   </environment>
 
-    <parametricSurfaces>
-      <parametricSurface name="Sphere" uResolution="16" vResolution="16">
-        <uRange min="0" max="3.141592653" join="true"/>
-        <vRange min="0" max="6.283185307" join="true"/>
-        <param name="R" value="1"/>
-        <point  x="R*sin(u)*cos(v)" y="R*sin(u)*sin(v)" z="R*cos(u)"/>
-        <normal x="sin(u)*cos(v)"   y="sin(u)*sin(v)"   z="cos(u)"/>
-      </parametricSurface>
+  <parametricSurfaces>
+    <parametricSurface name="Sphere" uResolution="16" vResolution="16">
+      <uRange min="0" max="3.141592653" join="true"/>
+      <vRange min="0" max="6.283185307" join="true"/>
+      <param name="R" value="1"/>
+      <point  x="R*sin(u)*cos(v)" y="R*sin(u)*sin(v)" z="R*cos(u)"/>
+      <normal x="sin(u)*cos(v)"   y="sin(u)*sin(v)"   z="cos(u)"/>
+    </parametricSurface>
   </parametricSurfaces>
-
+  
   <nodes>
     <node name="GroundNode">
       <plane
@@ -29,7 +29,19 @@
         <normal   x="0" y="1" z="0"/>
         <upVector x="0" y="0" z="-1"/>
       </plane>
+    </node>
+    <node>
+      <scale x="20" y="1" z="20"/>
+      <position x="0" y="-0.5" z="0"/>
+      <entity
+          name="GroundCollider"
+          meshFile="cube.obj"
+          visible="false"
+          castShadows="false"
+          >
+      </entity>
       <userData>
+        <property name="collider" type="string" data="box"/>
         <property name="mass" type="float" data="0"/>
       </userData>
     </node>

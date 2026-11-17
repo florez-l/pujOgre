@@ -87,22 +87,9 @@ _configure( Ogre::Entity* e, const Ogre::UserObjectBindings& b )
   if( e == nullptr )
     return;
 
-  auto value = []( const Ogre::Any& data, const float& def ) -> float
-    {
-      if( data.has_value( ) )
-        return( Ogre::any_cast< Ogre::Real >( data ) );
-      else
-        return( def );
-    };
-  float mass = value( b.getUserAny( "mass" ), 0 );
-  float restitution = value( b.getUserAny( "restitution" ), 5e-1 );
-  float friction = value( b.getUserAny( "friction" ), 1e-1 );
-  float rolling_friction = value( b.getUserAny( "rolling_friction" ), 1e-1 );
-  float spinning_friction = value( b.getUserAny( "spinning_friction" ), 1e-1 );
-  float linear_damping = value( b.getUserAny( "linear_damping" ), 1e-1 );
-  float angular_damping = value( b.getUserAny( "angular_damping" ), 1e-1 );
-  const Ogre::Any& collider_d = b.getUserAny( "collider" );
+  bool ok = true;
   Ogre::Bullet::ColliderType collider = Ogre::Bullet::CT_TRIMESH;
+  const Ogre::Any& collider_d = b.getUserAny( "collider" );
   if( collider_d.has_value( ) )
   {
     Ogre::String str = Ogre::any_cast< Ogre::String >( collider_d );
@@ -114,14 +101,47 @@ _configure( Ogre::Entity* e, const Ogre::UserObjectBindings& b )
     else if( str ==     "hull" ) collider = Ogre::Bullet::CT_HULL;
     else if( str ==   "sphere" ) collider = Ogre::Bullet::CT_SPHERE;
     else                         collider = Ogre::Bullet::CT_TRIMESH;
-  } // end if
+  }
+  else
+    ok = false;
 
-  btRigidBody* body = this->m_DynWorld->addRigidBody( mass, e, collider );
-  body->setRestitution( restitution );
-  body->setFriction( friction );
-  body->setRollingFriction( rolling_friction );
-  body->setSpinningFriction( spinning_friction );
-  body->setDamping( linear_damping, angular_damping );
+  auto value = []( float& ret, const Ogre::Any& data ) -> bool
+    {
+      if( data.has_value( ) )
+      {
+        ret = Ogre::any_cast< Ogre::Real >( data );
+        return( true );
+      }
+      else
+        return( false );
+    };
+
+  float
+    mass = 0,
+    restitution = 5e-1,
+    friction = 1e-1,
+    rolling_friction = 1e-1,
+    spinning_friction = 1e-1,
+    linear_damping = 1e-1,
+    angular_damping = 1e-1;
+
+  ok |= value( mass, b.getUserAny( "mass" ) );
+  ok |= value( restitution, b.getUserAny( "restitution" ) );
+  ok |= value( friction, b.getUserAny( "friction" ) );
+  ok |= value( rolling_friction, b.getUserAny( "rolling_friction" ) );
+  ok |= value( spinning_friction, b.getUserAny( "spinning_friction" ) );
+  ok |= value( linear_damping, b.getUserAny( "linear_damping" ) );
+  ok |= value( angular_damping, b.getUserAny( "angular_damping" ) );
+
+  if( ok )
+  {
+    btRigidBody* body = this->m_DynWorld->addRigidBody( mass, e, collider );
+    body->setRestitution( restitution );
+    body->setFriction( friction );
+    body->setRollingFriction( rolling_friction );
+    body->setSpinningFriction( spinning_friction );
+    body->setDamping( linear_damping, angular_damping );
+  } // end if
 }
 
 // eof - BulletModel.cxx
