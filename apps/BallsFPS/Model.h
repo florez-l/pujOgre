@@ -18,6 +18,8 @@ public:
 public:
   Model( );
   virtual ~Model( );
+
+  void spawnBullet( const Ogre::Vector3& pos, const Ogre::Vector3& dir );
 };
 
 #endif // __BallsFPS__Model__h__

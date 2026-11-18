@@ -17,4 +17,10 @@ Model::
 {
 }
 
+// -------------------------------------------------------------------------
+void Model::
+spawnBullet( const Ogre::Vector3& pos, const Ogre::Vector3& dir )
+{
+}
+
 // eof - Model.cxx

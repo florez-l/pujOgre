@@ -31,16 +31,31 @@ mousePressed( const OgreBites::MouseButtonEvent& evt )
 {
   if( evt.button == OgreBites::BUTTON_LEFT )
   {
-    Ogre::Vector3 pos
-      =
-      this->m_CameraMan->getBodyNode( )->_getDerivedPosition( );
-    Ogre::Vector3 dir
-      =
-      this->m_CameraMan->getBodyNode( )->_getDerivedOrientation( )
-      *
-      Ogre::Vector3::NEGATIVE_UNIT_Z;
+    /* TODO
+       Ogre::MeshPtr mesh
+       =
+       Ogre::MeshManager::getSingleton( ).
+       getByName( "Bullet.parametric", Ogre::RGN_DEFAULT );
+       Ogre::SceneNode* node = scnMgr->getRootSceneNode()->createChildSceneNode(Ogre::Vector3(3, 2, 0));
+       Ogre::Entity* ent = scnMgr->createEntity(mesh);
+       node->attachObject(ent);
 
-    // TODO: shoot!
+       if (const Ogre::UserObjectBindings* ud = Ogre::getParametricSurfaceUserData(mesh->getName()))
+       ent->getUserObjectBindings() = *ud;
+    */
+
+    /* TODO
+       Ogre::Vector3 pos
+       =
+       this->m_CameraMan->getBodyNode( )->_getDerivedPosition( );
+       Ogre::Vector3 dir
+       =
+       this->m_CameraMan->getBodyNode( )->_getDerivedOrientation( )
+       *
+       Ogre::Vector3::NEGATIVE_UNIT_Z;
+       
+       this->m_BallsFPSModel.spawnBullet( pos, dir );
+    */
 
     return( true );
   }

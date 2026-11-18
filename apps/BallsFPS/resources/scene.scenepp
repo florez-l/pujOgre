@@ -10,12 +10,22 @@
   </environment>
  
   <parametricSurfaces>
-    <parametricSurface name="Sphere" uResolution="16" vResolution="16">
+    <parametricSurface name="Bullet" uResolution="16" vResolution="16">
       <uRange min="0" max="3.141592653" join="true"/>
       <vRange min="0" max="6.283185307" join="true"/>
       <param name="R" value="0.1"/>
       <point  x="R*sin(u)*cos(v)" y="R*sin(u)*sin(v)" z="R*cos(u)"/>
       <normal x="sin(u)*cos(v)"   y="sin(u)*sin(v)"   z="cos(u)"/>
+      <userData>
+        <property name="collider" type="string" data="sphere"/>
+        <property name="mass" type="float" data="0.1"/>
+        <property name="restitution" type="float" data="0.8"/>
+        <property name="friction" type="float" data="0.6"/>
+        <property name="rolling_friction" type="float" data="0.01"/>
+        <property name="spinning_friction" type="float" data="0.1"/>
+        <property name="linear_damping" type="float" data="0.05"/>
+        <property name="angular_damping" type="float" data="0.1"/>
+      </userData>
     </parametricSurface>
   </parametricSurfaces>
 
