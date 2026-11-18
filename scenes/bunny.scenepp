@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scene formatVersion="1.1">
+  <meshes>
+      <mesh name="Bunny" material="RedTorus" file="stanford-bunny.obj"/>
+  </meshes>
+
+  <nodes>
+    <node name="Left">
+      <entity name="RightBunny" ref="Bunny" material="RedTorus"/>
+    </node>
+    <node name="LightNode">
+      <position x="4" y="6" z="8"/>
+      <light name="MainLight" type="point">
+        <colourDiffuse  r="1" g="1" b="1"/>
+        <colourSpecular r="1" g="1" b="1"/>
+      </light>
+    </node>
+  </nodes>
+</scene>
+

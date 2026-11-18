@@ -6,6 +6,7 @@
 
 #include <OgreDataStream.h>
 
+#include <vtkCenterOfMass.h>
 #include <vtkMemoryResourceStream.h>
 #include <vtkOBJReader.h>
 #include <vtkPolyData.h>
@@ -78,8 +79,17 @@ decode( const Ogre::DataStreamPtr& input, const Ogre::Any& output ) const
       + input->getName( ) + "'"
       );
 
+  double center[ 3 ];
+  auto cog = vtkSmartPointer< vtkCenterOfMass >::New( );
+  cog->SetInputData( pd );
+  cog->SetUseScalarsAsWeights( false );
+  cog->Update( );
+  cog->GetCenter( center );
+
   // Material can be changed later with entity->setMaterialName(...)
-  pujOgre::FillOgreMeshFromvtkPolyData( pd, mesh, "BaseWhite", true, true );
+  pujOgre::FillOgreMeshFromvtkPolyData(
+    pd, mesh, center, "BaseWhite", true, true
+    );
 }
 
 // eof - Codec.cxx

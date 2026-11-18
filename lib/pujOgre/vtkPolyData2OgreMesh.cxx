@@ -32,6 +32,7 @@ void pujOgre::
 FillOgreMeshFromvtkPolyData(
   vtkPolyData* polyData,
   Ogre::Mesh* mesh,
+  const double* center,
   const Ogre::String& materialName,
   bool generateNormalsIfMissing,
   bool flipV
@@ -125,9 +126,9 @@ FillOgreMeshFromvtkPolyData(
   {
     points->GetPoint( i, p );
     Ogre::Vector3 pos( p[ 0 ], p[ 1 ], p[ 2 ] );
-    *dst++ = float( pos.x );
-    *dst++ = float( pos.y );
-    *dst++ = float( pos.z );
+    *dst++ = float( pos.x - ( ( center != nullptr )? center[ 0 ]: 0 ) );
+    *dst++ = float( pos.y - ( ( center != nullptr )? center[ 1 ]: 0 ) );
+    *dst++ = float( pos.z - ( ( center != nullptr )? center[ 2 ]: 0 ) );
 
     minB.makeFloor( pos );
     maxB.makeCeil( pos );
@@ -232,7 +233,8 @@ vtkPolyData2OgreMesh(
   try
   {
     pujOgre::FillOgreMeshFromvtkPolyData(
-      polyData, mesh.get( ), materialName, generateNormalsIfMissing, flipV
+      polyData, mesh.get( ), nullptr,
+      materialName, generateNormalsIfMissing, flipV
       );
   }
   catch( ... )

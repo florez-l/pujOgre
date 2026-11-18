@@ -87,6 +87,7 @@ namespace Ogre
       pugi::xml_node& XMLNode, Ogre::SceneNode* pParent
       );
     void processParametricSurfaceDefinitions( pugi::xml_node& XMLNode );
+    void processMeshDefinitions( pugi::xml_node& XMLNode );
     Ogre::Node::TransformSpace parseTransformSpace(
       const pugi::xml_node& XMLNode
       );

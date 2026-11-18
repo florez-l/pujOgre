@@ -31,6 +31,7 @@ namespace pujOgre
   void pujOgre_EXPORT FillOgreMeshFromvtkPolyData(
     vtkPolyData* polyData,
     Ogre::Mesh* mesh,
+    const double* center = nullptr,
     const Ogre::String& materialName = "BaseWhite",
     bool generateNormalsIfMissing = false,
     bool flipV = true

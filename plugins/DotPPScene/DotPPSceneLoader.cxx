@@ -321,6 +321,10 @@ processScene( pugi::xml_node& XMLRoot )
   if( auto pElement = XMLRoot.child( "environment" ) )
     this->processEnvironment( pElement );
 
+  // Process mesh definitions ( ? ) -- before the nodes that reference them
+  if( auto pElement = XMLRoot.child( "meshes" ) )
+    this->processMeshDefinitions( pElement );
+
   // Process parametric surface definitions ( ? ) -- before the nodes that reference them
   if( auto pElement = XMLRoot.child( "parametricSurfaces" ) )
     this->processParametricSurfaceDefinitions( pElement );
@@ -920,9 +924,16 @@ processEntity( pugi::xml_node& XMLNode, Ogre::SceneNode* pParent )
   // Process attributes
   Ogre::String name = getAttrib( XMLNode, "name" );
 
-  Ogre::LogManager::getSingleton( ).logMessage( "[DotSceneLoader] Processing Entity: " + this->m_ItemPrefix + name, Ogre::LML_TRIVIAL );
+  Ogre::LogManager::getSingleton( ).logMessage(
+    "[DotSceneLoader] Processing Entity: " + this->m_ItemPrefix + name,
+    Ogre::LML_TRIVIAL
+    );
 
-  Ogre::String meshFile = getAttrib( XMLNode, "meshFile" );
+  // The mesh: ref="name" (a <mesh> from <meshes>) or meshFile="file"
+  Ogre::String ref = getAttrib( XMLNode, "ref" );
+  Ogre::String meshFile
+    =
+    ( ref.empty( ) )? getAttrib( XMLNode, "meshFile" ): this->m_ItemPrefix + ref;
   Ogre::String staticGeometry = getAttrib( XMLNode, "static" );
   Ogre::String instancedManager = getAttrib( XMLNode, "instanced" );
   Ogre::String material = getAttrib( XMLNode, "material" );
@@ -930,64 +941,99 @@ processEntity( pugi::xml_node& XMLNode, Ogre::SceneNode* pParent )
   bool visible = getAttribBool( XMLNode, "visible", true );
 
   // Create the entity
-  MovableObject* pEntity = 0;
-
+  Ogre::MovableObject* pEntity = nullptr;
   try
   {
+    // A ref must name a mesh already in memory: otherwise Ogre would look for
+    // a file with that name and fail with a less helpful message
+    if(
+      !ref.empty( )
+      &&
+      !Ogre::MeshManager::getSingleton( ).getByName( meshFile, this->m_sGroupName )
+      )
+      OGRE_EXCEPT(
+        Ogre::Exception::ERR_ITEM_NOT_FOUND,
+        "no mesh named '" + ref + "' has been defined in <meshes>"
+        );
+
     // If the Entity is instanced then the creation path is different
     if( !instancedManager.empty( ) )
     {
       Ogre::LogManager::getSingleton( ).logMessage(
-        "[DotSceneLoader] Adding entity: " + name + " to Instance Manager: " + instancedManager, Ogre::LML_TRIVIAL );
+        "[DotSceneLoader] Adding entity: " + name
+        +
+        " to Instance Manager: " + instancedManager,
+        Ogre::LML_TRIVIAL
+        );
 
       // Load the Mesh to get the material name of the first submesh
-      Ogre::MeshPtr mesh = MeshManager::getSingletonPtr( )->load( meshFile, this->m_sGroupName );
+      Ogre::MeshPtr mesh
+        =
+        Ogre::MeshManager::getSingleton( ).load( meshFile, this->m_sGroupName );
 
       // Get the material name of the entity
       if( !material.empty( ) )
-        pEntity = this->m_SceneMgr->createInstancedEntity( material, instancedManager );
+        pEntity
+          =
+          this->m_SceneMgr->createInstancedEntity( material, instancedManager );
       else
-        pEntity = this->m_SceneMgr->createInstancedEntity( mesh->getSubMesh( 0 )->getMaterialName( ), instancedManager );
+        pEntity
+          =
+          this->m_SceneMgr->createInstancedEntity(
+            mesh->getSubMesh( 0 )->getMaterialName( ), instancedManager
+            );
 
-      pParent->attachObject( static_cast<InstancedEntity*>( pEntity ) );
+      pParent->attachObject( static_cast< Ogre::InstancedEntity* >( pEntity ) );
     }
     else
     {
-      pEntity = this->m_SceneMgr->createEntity( this->m_ItemPrefix + name, meshFile, this->m_sGroupName );
-
-      static_cast<Entity*>( pEntity )->setCastShadows( castShadows );
-      static_cast<Entity*>( pEntity )->setVisible( visible );
-
+      Ogre::Entity* ent
+        =
+        this->m_SceneMgr->createEntity(
+          this->m_ItemPrefix + name, meshFile, this->m_sGroupName
+          );
+      pEntity = ent;
+      ent->setCastShadows( castShadows );
+      ent->setVisible( visible );
       if( !material.empty( ) )
-        static_cast<Entity*>( pEntity )->setMaterialName( material );
+        ent->setMaterialName( material );
 
-      // If the Entity belongs to a Static Geometry group then it doesn't get attached to a node
-      // * TODO * : Clean up nodes without attached entities or children nodes? ( should be done afterwards
-      // if the hierarchy is being processed )
+      // User data: the mesh's first (e.g. a <mesh> definition's), then this
+      // element's own on top
+      ent->getUserObjectBindings( ) = ent->getMesh( )->getUserObjectBindings( );
+
+      // If the Entity belongs to a Static Geometry group then it doesn't get
+      // attached to a node
       if( !staticGeometry.empty( ) )
       {
         Ogre::LogManager::getSingleton( ).logMessage(
-          "[DotSceneLoader] Adding entity: " + name + " to Static Group: " + staticGeometry, Ogre::LML_TRIVIAL );
-        this->m_SceneMgr->getStaticGeometry( staticGeometry )
-          ->addEntity( static_cast<Entity*>( pEntity ), pParent->_getDerivedPosition( ),
-                       pParent->_getDerivedOrientation( ), pParent->_getDerivedScale( ) );
+          "[DotSceneLoader] Adding entity: " + name
+          +
+          " to Static Group: " + staticGeometry,
+          Ogre::LML_TRIVIAL
+          );
+        this->m_SceneMgr->getStaticGeometry( staticGeometry )->addEntity(
+          ent,
+          pParent->_getDerivedPosition( ),
+          pParent->_getDerivedOrientation( ),
+          pParent->_getDerivedScale( )
+          );
       }
       else
-      {
-        Ogre::LogManager::getSingleton( ).logMessage( "[DotSceneLoader] pParent->attachObject( ): " + name, Ogre::LML_TRIVIAL );
-        pParent->attachObject( static_cast<Entity*>( pEntity ) );
-      }
-    }
+        pParent->attachObject( ent );
+    } // end if
   }
-  catch ( const Exception& e )
+  catch( const Ogre::Exception& e )
   {
-    Ogre::LogManager::getSingleton( ).logError( "DotSceneLoader - " + e.getDescription( ) );
+    Ogre::LogManager::getSingleton( ).logError(
+      "DotSceneLoader - " + e.getDescription( )
+      );
     return;
-  }
+  } // end try
 
   // Process userDataReference ( ? )
   if( auto pElement = XMLNode.child( "userData" ) )
-    processUserData( pElement, pEntity->getUserObjectBindings( ) );
+    this->processUserData( pElement, pEntity->getUserObjectBindings( ) );
 }
 
 // -------------------------------------------------------------------------
@@ -1206,6 +1252,75 @@ processParametricSurfaceDefinitions( pugi::xml_node& XMLNode )
       Ogre::LogManager::getSingleton( ).logError( "[DotSceneLoader] parametricSurface '" + name + "': " + e.what( ) );
     }
   }
+}
+
+// -------------------------------------------------------------------------
+void Ogre::DotPPSceneLoader::
+processMeshDefinitions( pugi::xml_node& XMLNode )
+{
+  // <meshes> only loads meshes into memory; nodes create entities with
+  // <entity ref="name"/>, and code finds them with MeshManager::getByName
+  for( auto pElement: XMLNode.children( "mesh" ) )
+  {
+    Ogre::String file = getAttrib( pElement, "file" );
+    Ogre::String name = getAttrib( pElement, "name", file );
+    if( file.empty( ) )
+    {
+      Ogre::LogManager::getSingleton( ).logError(
+        "[DotSceneLoader] <mesh> definitions need a 'file' attribute - skipped"
+        );
+      continue;
+    } // end if
+    Ogre::String meshName = this->m_ItemPrefix + name;
+
+    Ogre::LogManager::getSingleton( ).logMessage(
+      "[DotSceneLoader] Defining Mesh: " + meshName + " from " + file,
+      Ogre::LML_TRIVIAL
+      );
+
+    try
+    {
+      Ogre::MeshManager& meshMgr = Ogre::MeshManager::getSingleton( );
+
+      // Already in memory (earlier in this file, or the same scene loaded before)
+      Ogre::MeshPtr mesh = meshMgr.getByName( meshName, this->m_sGroupName );
+      if( !mesh )
+      {
+        // Load the file through Ogre: any format it has a codec for (.mesh,
+        // .vtp with the VTK codec, ...)
+        const bool wasLoaded
+          =
+          bool( meshMgr.getByName( file, this->m_sGroupName ) );
+        Ogre::MeshPtr fileMesh = meshMgr.load( file, this->m_sGroupName );
+
+        if( meshName == file )
+          mesh = fileMesh;
+        else
+        {
+          // Ogre has no mesh aliases: keep one copy, under the new name.
+          // The file's own mesh is dropped unless something else loaded it
+          mesh = fileMesh->clone( meshName, this->m_sGroupName );
+          if( !wasLoaded )
+            meshMgr.remove( fileMesh );
+        } // end if
+      } // end if
+
+      // Material for all its submeshes ( ? )
+      Ogre::String material = getAttrib( pElement, "material" );
+      if( !material.empty( ) )
+        for( Ogre::SubMesh* sub: mesh->getSubMeshes( ) )
+          sub->setMaterialName( material );
+
+      // User data ( ? ): kept on the mesh
+      this->storeParametricUserData( mesh, pElement );
+    }
+    catch( const std::exception& e ) // Ogre::Exception derives from std::exception
+    {
+      Ogre::LogManager::getSingleton( ).logError(
+        "[DotSceneLoader] mesh '" + name + "': " + e.what( )
+        );
+    } // end try
+  } // end for
 }
 
 // -------------------------------------------------------------------------
