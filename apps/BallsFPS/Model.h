@@ -19,7 +19,19 @@ public:
   Model( );
   virtual ~Model( );
 
-  void spawnBullet( const Ogre::Vector3& pos, const Ogre::Vector3& dir );
+  virtual void build( Ogre::SceneNode* root ) override;
+
+  void spawnBullet(
+    Ogre::Entity* e,
+    const Ogre::UserObjectBindings& u,
+    const Ogre::Quaternion& q
+    );
+
+protected:
+  float m_BulletSpeed       { 20 };
+  float m_MotionThreshold   { 0.5 };
+  float m_SweptSphereRadius { 0.9 };
+
 };
 
 #endif // __BallsFPS__Model__h__

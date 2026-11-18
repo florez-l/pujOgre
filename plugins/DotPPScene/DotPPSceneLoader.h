@@ -14,6 +14,10 @@
 #include <OgreCodec.h>
 #include <OgreMesh.h>
 #include <OgreNode.h>
+#include <OgreUserObjectBindings.h>
+
+#include <map>
+#include <memory>
 
 // Forward declarations
 namespace pugi
@@ -87,10 +91,13 @@ namespace Ogre
       const pugi::xml_node& XMLNode
       );
     Ogre::MeshPtr createParametricMesh(
-      pugi::xml_node& XMLNode, const Ogre::String& name
+      pugi::xml_node& XMLNode, const Ogre::String& meshName
       );
     void registerParametricDefinition(
       const Ogre::String& name, const pugi::xml_node& XMLNode
+      );
+    void storeParametricUserData(
+      Ogre::MeshPtr& mesh, pugi::xml_node& XMLNode
       );
     void processNodeAnimations(
       pugi::xml_node& XMLNode, Ogre::SceneNode* pParent
@@ -140,6 +147,16 @@ namespace Ogre
   private:
     Codec* m_Codec;
   };
+
+  /**
+   * User data of the <parametricSurface> definition that built the mesh
+   * `meshName` (e.g. "Torus.parametric"), or nullptr if no such mesh exists.
+   * It's the mesh's own user data: the same as mesh->getUserObjectBindings( ).
+   */
+  Plugin_pujOgreDotPPSceneCodec_EXPORT
+  const Ogre::UserObjectBindings* getParametricSurfaceUserData(
+    const Ogre::String& meshName
+    );
 } // namespace Ogre
 
 #endif // __pujOgre__Plugin__DotPPSceneLoader__h__

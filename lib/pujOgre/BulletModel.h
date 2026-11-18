@@ -28,7 +28,7 @@ namespace pujOgre
     virtual void update( double t );
 
   protected:
-    virtual void _configure(
+    virtual btRigidBody* _configure(
       Ogre::Entity* e, const Ogre::UserObjectBindings& b
       );
 

@@ -31,31 +31,20 @@ mousePressed( const OgreBites::MouseButtonEvent& evt )
 {
   if( evt.button == OgreBites::BUTTON_LEFT )
   {
-    /* TODO
-       Ogre::MeshPtr mesh
-       =
-       Ogre::MeshManager::getSingleton( ).
-       getByName( "Bullet.parametric", Ogre::RGN_DEFAULT );
-       Ogre::SceneNode* node = scnMgr->getRootSceneNode()->createChildSceneNode(Ogre::Vector3(3, 2, 0));
-       Ogre::Entity* ent = scnMgr->createEntity(mesh);
-       node->attachObject(ent);
+    auto* scnMgr = this->getRoot( )->getSceneManager( "scnMgr" );
+    auto* root = scnMgr->getRootSceneNode( );
+    auto* meshMgr = Ogre::MeshManager::getSingletonPtr( );
+    auto* head = this->m_CameraMan->getHeadNode( );
 
-       if (const Ogre::UserObjectBindings* ud = Ogre::getParametricSurfaceUserData(mesh->getName()))
-       ent->getUserObjectBindings() = *ud;
-    */
-
-    /* TODO
-       Ogre::Vector3 pos
-       =
-       this->m_CameraMan->getBodyNode( )->_getDerivedPosition( );
-       Ogre::Vector3 dir
-       =
-       this->m_CameraMan->getBodyNode( )->_getDerivedOrientation( )
-       *
-       Ogre::Vector3::NEGATIVE_UNIT_Z;
-       
-       this->m_BallsFPSModel.spawnBullet( pos, dir );
-    */
+    Ogre::MeshPtr mesh
+      = meshMgr->getByName( "Bullet.parametric", Ogre::RGN_DEFAULT );
+    Ogre::SceneNode* node
+      = root->createChildSceneNode( head->_getDerivedPosition( ) );
+    Ogre::Entity* ent = scnMgr->createEntity( mesh );
+    node->attachObject( ent );
+    this->m_BallsFPSModel.spawnBullet(
+      ent, mesh->getUserObjectBindings( ), head->_getDerivedOrientation( )
+      );
 
     return( true );
   }

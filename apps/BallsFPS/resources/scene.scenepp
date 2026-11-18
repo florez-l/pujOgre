@@ -3,12 +3,15 @@
 
   <userData>
     <property name="gravity" type="vector" data="0 -9.81 0"/>
+    <property name="bullet_speed" type="float" data="20"/>
+    <property name="motion_threshold" type="float" data="0.5"/>
+    <property name="swept_sphere_radius" type="float" data="0.9"/>
   </userData>
 
   <environment>
     <colourAmbient r="0.3" g="0.3" b="0.3"/>
   </environment>
- 
+
   <parametricSurfaces>
     <parametricSurface name="Bullet" uResolution="16" vResolution="16">
       <uRange min="0" max="3.141592653" join="true"/>
@@ -21,7 +24,7 @@
         <property name="mass" type="float" data="0.1"/>
         <property name="restitution" type="float" data="0.8"/>
         <property name="friction" type="float" data="0.6"/>
-        <property name="rolling_friction" type="float" data="0.01"/>
+        <property name="rolling_friction" type="float" data="0.02"/>
         <property name="spinning_friction" type="float" data="0.1"/>
         <property name="linear_damping" type="float" data="0.05"/>
         <property name="angular_damping" type="float" data="0.1"/>
@@ -145,5 +148,7 @@
         <property name="mass" type="float" data="0"/>
       </userData>
     </node>
+
   </nodes>
+
 </scene>

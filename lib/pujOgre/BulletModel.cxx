@@ -35,12 +35,7 @@ build( Ogre::SceneNode* root )
   Ogre::Vector3 gravity( 0, -9.8, 0 );
   const Ogre::Any& gd = sd.getUserAny( "gravity" );
   if( gd.has_value( ) )
-  {
-    double gx, gy, gz;
-    std::istringstream( Ogre::any_cast< Ogre::String >( gd ) )
-      >> gx >> gy >> gz;
-    gravity = Ogre::Vector3( gx, gy, gz );
-  } // end if
+    gravity = Ogre::any_cast< Ogre::Vector3 >( gd );
 
   // Create dynamic world
   this->m_DynWorld = std::make_unique< Ogre::Bullet::DynamicsWorld>( gravity );
@@ -81,11 +76,11 @@ update( double t )
 }
 
 // -------------------------------------------------------------------------
-void pujOgre::BulletModel::
+btRigidBody* pujOgre::BulletModel::
 _configure( Ogre::Entity* e, const Ogre::UserObjectBindings& b )
 {
   if( e == nullptr )
-    return;
+    return( nullptr );
 
   bool ok = true;
   Ogre::Bullet::ColliderType collider = Ogre::Bullet::CT_TRIMESH;
@@ -141,7 +136,10 @@ _configure( Ogre::Entity* e, const Ogre::UserObjectBindings& b )
     body->setRollingFriction( rolling_friction );
     body->setSpinningFriction( spinning_friction );
     body->setDamping( linear_damping, angular_damping );
-  } // end if
+    return( body );
+  }
+  else
+    return( nullptr );
 }
 
 // eof - BulletModel.cxx

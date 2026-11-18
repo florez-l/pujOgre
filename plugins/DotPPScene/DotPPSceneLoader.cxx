@@ -12,6 +12,11 @@
 
 #include <Ogre.h>
 #include <OgreComponents.h>
+#include <OgreMatrix3.h>
+#include <OgreMatrix4.h>
+#include <OgreVector.h>
+
+#include <vector>
 
 #ifdef OGRE_BUILD_COMPONENT_TERRAIN
 #  include <OgreTerrain.h>
@@ -137,6 +142,60 @@ namespace
         : 1
         )
       );
+  }
+
+  // -----------------------------------------------------------------------
+  // One value of type T from whitespace-separated numbers
+  template< class T >
+  bool parseUserValue( const Ogre::String& data, Ogre::Any& value )
+  {
+    T v;
+    if( !Ogre::StringConverter::parse( data, v ) )
+      return( false );
+    value = v;
+    return( true );
+  }
+
+  // -----------------------------------------------------------------------
+  // A std::vector< T > from groups of N numbers each
+  template< class T, std::size_t N >
+  bool parseUserList( const Ogre::String& data, Ogre::Any& value )
+  {
+    Ogre::StringVector tokens = Ogre::StringUtil::split( data );
+    if( tokens.size( ) % N != 0 )
+      return( false );
+
+    std::vector< T > list( tokens.size( ) / N );
+    for( std::size_t i = 0; i < list.size( ); ++i )
+    {
+      Ogre::String group;
+      for( std::size_t k = 0; k < N; ++k )
+        group += tokens[ i * N + k ] + " ";
+      if( !Ogre::StringConverter::parse( group, list[ i ] ) )
+        return( false );
+    } // end for
+    value = list;
+    return( true );
+  }
+
+  // -----------------------------------------------------------------------
+  // Canonical type name for the aliases accepted in .scene files
+  Ogre::String canonicalUserType( Ogre::String type )
+  {
+    Ogre::StringUtil::toLowerCase( type );
+    if( type == "point" || type == "point3" || type == "vector" )
+      return( "vector3" );
+    if( type == "point2" )
+      return( "vector2" );
+    if( type == "point4" )
+      return( "vector4" );
+    if( type == "color" )
+      return( "colour" );
+    if( type == "real" )
+      return( "float" );
+    if( type == "str" )
+      return( "string" );
+    return( type );
   }
 } // end namespace
 
@@ -425,22 +484,114 @@ processBlendmaps( pugi::xml_node& XMLNode )
 void Ogre::DotPPSceneLoader::
 processUserData( pugi::xml_node& XMLNode, Ogre::UserObjectBindings& userData )
 {
-  // Process node ( * )
+  // Types: bool int float double string vector2 vector3 (point) vector4
+  // quaternion (w x y z) colour matrix3 matrix4 (row by row); "type[]" is a
+  // std::vector of them. The value is the "data" attribute or, for long
+  // values, the element's text.
   for( auto pElement: XMLNode.children( "property" ) )
   {
     Ogre::String name = getAttrib( pElement, "name" );
-    Ogre::String type = getAttrib( pElement, "type" );
-    Ogre::String data = getAttrib( pElement, "data" );
+    if( name.empty( ) )
+    {
+      Ogre::LogManager::getSingleton( ).logError(
+        "[DotSceneLoader] userData property without a name - skipped"
+        );
+      continue;
+    } // end if
+
+    Ogre::String data
+      =
+      ( pElement.attribute( "data" ) )?
+      getAttrib( pElement, "data" ):
+      Ogre::String( pElement.child_value( ) );
+
+    Ogre::String type = getAttrib( pElement, "type", "string" );
+    bool isList = Ogre::StringUtil::endsWith( type, "[]" );
+    if( isList )
+      type = type.substr( 0, type.size( ) - 2 );
+    type = canonicalUserType( type );
 
     Ogre::Any value;
-    if( type == "bool" )
-      value = Ogre::StringConverter::parseBool( data );
-    else if( type == "float" )
-      value = Ogre::StringConverter::parseReal( data );
-    else if( type == "int" )
-      value = Ogre::StringConverter::parseInt( data );
+    bool ok = true;
+    if( !isList )
+    {
+      if( type == "bool" )
+        ok = parseUserValue< bool >( data, value );
+      else if( type == "int" )
+        ok = parseUserValue< Ogre::int32 >( data, value );
+      else if( type == "float" )
+        ok = parseUserValue< Ogre::Real >( data, value );
+      else if( type == "double" )
+        ok = parseUserValue< double >( data, value );
+      else if( type == "vector2" )
+        ok = parseUserValue< Ogre::Vector2 >( data, value );
+      else if( type == "vector3" )
+        ok = parseUserValue< Ogre::Vector3 >( data, value );
+      else if( type == "vector4" )
+        ok = parseUserValue< Ogre::Vector4 >( data, value );
+      else if( type == "quaternion" )
+        ok = parseUserValue< Ogre::Quaternion >( data, value );
+      else if( type == "colour" )
+        ok = parseUserValue< Ogre::ColourValue >( data, value );
+      else if( type == "matrix3" )
+        ok = parseUserValue< Ogre::Matrix3 >( data, value );
+      else if( type == "matrix4" )
+        ok = parseUserValue< Ogre::Matrix4 >( data, value );
+      else
+      {
+        if( type != "string" )
+          Ogre::LogManager::getSingleton( ).logWarning(
+            "[DotSceneLoader] userData '" + name + "': unknown type '" + type
+            +
+            "', stored as string"
+            );
+        value = data;
+      } // end if
+    }
     else
-      value = data;
+    {
+      if( type == "int" )
+        ok = parseUserList< Ogre::int32, 1 >( data, value );
+      else if( type == "float" )
+        ok = parseUserList< Ogre::Real, 1 >( data, value );
+      else if( type == "double" )
+        ok = parseUserList< double, 1 >( data, value );
+      else if( type == "vector2" )
+        ok = parseUserList< Ogre::Vector2, 2 >( data, value );
+      else if( type == "vector3" )
+        ok = parseUserList< Ogre::Vector3, 3 >( data, value );
+      else if( type == "vector4" )
+        ok = parseUserList< Ogre::Vector4, 4 >( data, value );
+      else if( type == "quaternion" )
+        ok = parseUserList< Ogre::Quaternion, 4 >( data, value );
+      else if( type == "colour" )
+        ok = parseUserList< Ogre::ColourValue, 4 >( data, value );
+      else if( type == "matrix3" )
+        ok = parseUserList< Ogre::Matrix3, 9 >( data, value );
+      else if( type == "matrix4" )
+        ok = parseUserList< Ogre::Matrix4, 16 >( data, value );
+      else if( type == "string" )
+        value = Ogre::StringUtil::split( data );
+      else
+      {
+        Ogre::LogManager::getSingleton( ).logError(
+          "[DotSceneLoader] userData '" + name + "': lists of type '" + type
+          +
+          "' are not supported - skipped"
+          );
+        continue;
+      } // end if
+    } // end if
+
+    if( !ok )
+    {
+      Ogre::LogManager::getSingleton( ).logError(
+        "[DotSceneLoader] userData '" + name + "': cannot read '" + data
+        +
+        "' as " + type + ( ( isList )? "[]": "" ) + " - skipped"
+        );
+      continue;
+    } // end if
 
     userData.setUserAny( name, value );
   } // end for
@@ -595,13 +746,41 @@ processNode( pugi::xml_node& XMLNode, Ogre::SceneNode* pParent )
   } // end if
 
   // Process other attributes
-  // Process position ( ? )
-  if( auto pElement = XMLNode.child( "position" ) )
-    pNode->setPosition( parseVector3( pElement ) );
+  // Process position / rotation ( * ), in document order:
+  //   relativeTo="parent" (default): set relative to the parent node
+  //   relativeTo="world": set the absolute world position / orientation
+  //   relativeTo="local": apply along / onto the node's current own axes
+  for( auto pElement: XMLNode.children( ) )
+  {
+    const Ogre::String tag = pElement.name( );
+    if( tag != "position" && tag != "rotation" )
+      continue;
 
-  // Process rotation ( ? )
-  if( auto pElement = XMLNode.child( "rotation" ) )
-    pNode->setOrientation( parseQuaternion( pElement ) );
+    const Ogre::Node::TransformSpace space
+      =
+      this->parseTransformSpace( pElement );
+    if( tag == "position" )
+    {
+      Ogre::Vector3 position = parseVector3( pElement );
+      if( space == Ogre::Node::TS_LOCAL )
+        pNode->translate( position, Ogre::Node::TS_LOCAL );
+      else if( space == Ogre::Node::TS_WORLD )
+        pNode->_setDerivedPosition( position ); // compensates the parents
+      else
+        pNode->setPosition( position );
+    }
+    else
+    {
+      Ogre::Quaternion orientation = parseQuaternion( pElement );
+      orientation.normalise( );
+      if( space == Ogre::Node::TS_LOCAL )
+        pNode->rotate( orientation, Ogre::Node::TS_LOCAL );
+      else if( space == Ogre::Node::TS_WORLD )
+        pNode->_setDerivedOrientation( orientation ); // compensates the parents
+      else
+        pNode->setOrientation( orientation );
+    } // end if
+  } // end for
 
   // Process scale ( ? )
   if( auto pElement = XMLNode.child( "scale" ) )
@@ -885,68 +1064,116 @@ namespace
 void Ogre::DotPPSceneLoader::
 processParametricSurface( pugi::xml_node& XMLNode, Ogre::SceneNode* pParent )
 {
-  Ogre::String name = getAttrib(XMLNode, "name");
-  Ogre::String ref = getAttrib(XMLNode, "ref");
-  Ogre::String entityName = name.empty() ? "ParametricSurface" + StringConverter::toString(gParametricAutoName++) : name;
+  Ogre::String name = getAttrib( XMLNode, "name" );
+  Ogre::String ref = getAttrib( XMLNode, "ref" );
+  Ogre::String entityName
+    =
+    ( name.empty( ) )?
+    "ParametricSurface" + StringConverter::toString( gParametricAutoName++ ):
+    name;
 
-  Ogre::LogManager::getSingleton().logMessage("[DotSceneLoader] Processing ParametricSurface: " + this->m_ItemPrefix +
-                                              entityName + (ref.empty() ? "" : " (ref " + ref + ")"),
-                                              LML_TRIVIAL);
-  
-  bool castShadows = getAttribBool(XMLNode, "castShadows", true);
-  bool visible = getAttribBool(XMLNode, "visible", true);
-  Ogre::String material = getAttrib(XMLNode, "material"); // empty: keep the mesh's material
+  Ogre::LogManager::getSingleton( ).logMessage(
+    "[DotSceneLoader] Processing ParametricSurface: "
+    +
+    this->m_ItemPrefix + entityName
+    +
+    ( ( ref.empty( ) )? "": " (ref " + ref + ")" ),
+    Ogre::LML_TRIVIAL
+    );
+
+  bool castShadows = getAttribBool( XMLNode, "castShadows", true );
+  bool visible = getAttribBool( XMLNode, "visible", true );
+
+  // Empty: keep the mesh's material
+  Ogre::String material = getAttrib( XMLNode, "material" );
 
   try
   {
     Ogre::MeshPtr mesh;
-    if (!ref.empty())
+    if( !ref.empty( ) )
     {
-      const bool overrides = hasParametricOverrides(XMLNode);
-      const bool ownCopy = overrides || getAttribBool(XMLNode, "copy", false);
+      const bool overrides = hasParametricOverrides( XMLNode );
+      const bool ownCopy = overrides || getAttribBool( XMLNode, "copy", false );
+      const Ogre::String defMeshName
+        =
+        this->m_ItemPrefix + ref + ".parametric";
 
-      if (!ownCopy)
+      if( !ownCopy )
       {
         // Shared: every plain ref uses the same mesh
-        mesh = Ogre::MeshManager::getSingleton().getByName(this->m_ItemPrefix + ref + ".parametric", m_sGroupName);
-        if (!mesh)
-          OGRE_EXCEPT(Exception::ERR_ITEM_NOT_FOUND,
-                      "no parametric surface named '" + ref + "' has been defined before this point");
+        mesh = Ogre::MeshManager::getSingleton( ).getByName(
+          defMeshName, this->m_sGroupName
+          );
+        if( !mesh )
+          OGRE_EXCEPT(
+            Ogre::Exception::ERR_ITEM_NOT_FOUND,
+            "no parametric surface named '" + ref
+            +
+            "' has been defined before this point"
+            );
       }
       else
       {
         // Own mesh: the definition with this instance's overrides applied
-        auto def = this->m_ParametricDefs.find(ref);
-        if (def == this->m_ParametricDefs.end())
-          OGRE_EXCEPT(Exception::ERR_ITEM_NOT_FOUND,
-                      "no parametric surface named '" + ref + "' has been defined earlier in this file");
+        auto def = this->m_ParametricDefs.find( ref );
+        if( def == this->m_ParametricDefs.end( ) )
+          OGRE_EXCEPT(
+            Ogre::Exception::ERR_ITEM_NOT_FOUND,
+            "no parametric surface named '" + ref
+            +
+            "' has been defined earlier in this file"
+            );
 
         pugi::xml_document mergedDoc;
-        pugi::xml_node merged = mergeParametricSurface(def->second->first_child(), XMLNode, mergedDoc);
-        mesh = createParametricMesh(merged, this->m_ItemPrefix + entityName + ".parametric-copy");
-      }
+        pugi::xml_node merged
+          =
+          mergeParametricSurface( def->second->first_child( ), XMLNode, mergedDoc );
+        mesh = this->createParametricMesh(
+          merged, this->m_ItemPrefix + entityName + ".parametric-copy"
+          );
+
+        // The copy's mesh carries its definition's user data
+        Ogre::MeshPtr defMesh = Ogre::MeshManager::getSingleton( ).getByName(
+          defMeshName, this->m_sGroupName
+          );
+        if( defMesh )
+          mesh->getUserObjectBindings( ) = defMesh->getUserObjectBindings( );
+        else
+          mesh->getUserObjectBindings( ).clear( );
+      } // end if
     }
     else
     {
       // Inline definition: builds the mesh (or reuses one with the same name)
-      registerParametricDefinition(entityName, XMLNode);
-      mesh = createParametricMesh(XMLNode, this->m_ItemPrefix + entityName + ".parametric");
-    }
+      this->registerParametricDefinition( entityName, XMLNode );
+      mesh = this->createParametricMesh(
+        XMLNode, this->m_ItemPrefix + entityName + ".parametric"
+        );
+      this->storeParametricUserData( mesh, XMLNode );
+    } // end if
 
-    Ogre::Entity* ent = this->m_SceneMgr->createEntity(this->m_ItemPrefix + entityName, mesh);
-    if (!material.empty())
-      ent->setMaterialName(material);
-    ent->setCastShadows(castShadows);
-    ent->setVisible(visible);
-    pParent->attachObject(ent);
+    Ogre::Entity* ent
+      =
+      this->m_SceneMgr->createEntity( this->m_ItemPrefix + entityName, mesh );
+    if( !material.empty( ) )
+      ent->setMaterialName( material );
+    ent->setCastShadows( castShadows );
+    ent->setVisible( visible );
+    pParent->attachObject( ent );
 
-    if (auto pElement = XMLNode.child("userData"))
-      processUserData(pElement, ent->getUserObjectBindings());
+    // User data: the mesh's (= the definition's) first, then this element's
+    // own on top (same keys replace them). The mesh keeps its own copy, shared
+    // by every entity of that mesh.
+    ent->getUserObjectBindings( ) = mesh->getUserObjectBindings( );
+    if( auto pElement = XMLNode.child( "userData" ) )
+      this->processUserData( pElement, ent->getUserObjectBindings( ) );
   }
-  catch (const std::exception& e) // Ogre::Exception derives from std::exception
+  catch( const std::exception& e ) // Ogre::Exception derives from std::exception
   {
-    LogManager::getSingleton().logError("[DotSceneLoader] parametricSurface '" + entityName + "': " + e.what());
-  }
+    Ogre::LogManager::getSingleton( ).logError(
+      "[DotSceneLoader] parametricSurface '" + entityName + "': " + e.what( )
+      );
+  } // end try
 }
 
 // -------------------------------------------------------------------------
@@ -968,8 +1195,11 @@ processParametricSurfaceDefinitions( pugi::xml_node& XMLNode )
                                                   Ogre::LML_TRIVIAL );
     try
     {
-      registerParametricDefinition(name, pElement);
-      createParametricMesh( pElement, name );
+      this->registerParametricDefinition( name, pElement );
+      Ogre::MeshPtr mesh = this->createParametricMesh(
+        pElement, this->m_ItemPrefix + name + ".parametric"
+        );
+      this->storeParametricUserData( mesh, pElement );
     }
     catch ( const std::exception& e ) // Ogre::Exception derives from std::exception
     {
@@ -999,18 +1229,21 @@ parseTransformSpace( const pugi::xml_node& XMLNode )
 
 // -------------------------------------------------------------------------
 Ogre::MeshPtr Ogre::DotPPSceneLoader::
-createParametricMesh( pugi::xml_node& XMLNode, const Ogre::String& name )
+createParametricMesh( pugi::xml_node& XMLNode, const Ogre::String& meshName )
 {
-  Ogre::String meshName = this->m_ItemPrefix + name + ".parametric";
+  // Already built (earlier in this file, or the same scene loaded before)
+  Ogre::MeshPtr mesh = Ogre::MeshManager::getSingleton( ).getByName(
+    meshName, this->m_sGroupName
+    );
+  if( mesh )
+    return( mesh );
 
-  // Already defined ( earlier in this file, or the same scene loaded before )
-  if( MeshPtr mesh = MeshManager::getSingleton( ).getByName( meshName, this->m_sGroupName ) )
-    return mesh;
-
-  vtkSmartPointer<vtkPolyData> polyData = buildParametricPolyData( XMLNode );
-  return pujOgre::vtkPolyData2OgreMesh(
-    polyData, meshName, getAttrib( XMLNode, "material", "BaseWhite" ),
-    /*generateNormalsIfMissing=*/true, /*flipV=*/true, this->m_sGroupName
+  vtkSmartPointer< vtkPolyData > polyData = buildParametricPolyData( XMLNode );
+  return(
+    pujOgre::vtkPolyData2OgreMesh(
+      polyData, meshName, getAttrib( XMLNode, "material", "BaseWhite" ),
+      /*generateNormalsIfMissing=*/true, /*flipV=*/true, this->m_sGroupName
+      )
     );
 }
 
@@ -1024,6 +1257,19 @@ registerParametricDefinition(
   auto doc = std::make_shared< pugi::xml_document >( );
   doc->append_copy( XMLNode );
   this->m_ParametricDefs[ name ] = doc;
+}
+
+// -------------------------------------------------------------------------
+void Ogre::DotPPSceneLoader::
+storeParametricUserData( Ogre::MeshPtr& mesh, pugi::xml_node& XMLNode )
+{
+  // The definition's <userData> lives on its mesh. Replace whatever an earlier
+  // load of the same definition stored: parametric meshes are created with
+  // createManual, so Ogre keeps nothing of its own in these bindings
+  Ogre::UserObjectBindings& bindings = mesh->getUserObjectBindings( );
+  bindings.clear( );
+  if( auto pElement = XMLNode.child( "userData" ) )
+    this->processUserData( pElement, bindings );
 }
 
 // -------------------------------------------------------------------------
@@ -1324,6 +1570,17 @@ uninstall( )
 void Ogre::DotPPScenePlugin::
 shutdown( )
 {
+}
+
+// -------------------------------------------------------------------------
+const Ogre::UserObjectBindings* Ogre::
+getParametricSurfaceUserData( const Ogre::String& meshName )
+{
+  // The definition's user data lives on the mesh itself
+  Ogre::MeshPtr mesh
+    =
+    Ogre::MeshManager::getSingleton( ).getByName( meshName, Ogre::RGN_AUTODETECT );
+  return( ( mesh )? &mesh->getUserObjectBindings( ): nullptr );
 }
 
 #ifndef OGRE_STATIC_LIB
