@@ -12,6 +12,14 @@
 namespace pujOgre
 {
   /**
+   * First-person camera that walks on a floor node's local XZ plane.
+   *
+   * The floor node may be moved, turned and scaled (also non-uniformly,
+   * and also at run time): the player follows its position and
+   * orientation and walks over its scaled size, but keeps its own size.
+   * Eye height, speeds, jump and edge margin are in world units, and the
+   * camera (and anything attached to it) is never stretched by the floor's
+   * scale.
    */
   class pujOgre_EXPORT FPSCamera
     : public OgreBites::InputListener
@@ -21,6 +29,15 @@ namespace pujOgre
     virtual ~FPSCamera( ) override;
 
     void setCamera( Ogre::Camera* camera, Ogre::SceneNode* floor = nullptr );
+
+    /// (x, z): world units from the floor's origin, along its axes
+    void setPosition(
+      Ogre::Real x, Ogre::Real z, Ogre::Radian yaw = Ogre::Radian( 0 )
+      );
+
+    /// Re-reads the floor's size from the entities attached to it
+    void refreshFloorBounds( );
+
     Ogre::Camera* getCamera( ) const;
     Ogre::SceneNode* getFloor( ) const;
     Ogre::SceneNode* getBodyNode( ) const;
@@ -45,6 +62,8 @@ namespace pujOgre
   protected:
     bool _setKey( OgreBites::Keycode key, bool down );
     void _applyOrientation( );
+    Ogre::Vector3 _floorScale( ) const;
+    void _applyPosition( );
     static Ogre::AxisAlignedBox _floorBounds( Ogre::SceneNode* floor );
     void _clampToFloor( );
 
@@ -53,7 +72,13 @@ namespace pujOgre
     Ogre::SceneNode* m_Floor { nullptr };
     Ogre::SceneNode* m_Body  { nullptr };
     Ogre::SceneNode* m_Head  { nullptr };
+
+    /// Floor size, in the floor's local (unscaled) units
     Ogre::AxisAlignedBox m_Bounds;
+
+    /// Player position, in world units along the floor's axes;
+    /// y = eye height above the floor (plus the jump)
+    Ogre::Vector3 m_Pos { Ogre::Vector3::ZERO };
 
     Ogre::Real m_EyeHeight        { 1.7 };
     Ogre::Real m_WalkSpeed        { 3.0 };

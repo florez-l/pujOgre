@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <vector>
 
 // -------------------------------------------------------------------------
 pujOgre::FPSCamera::
@@ -45,6 +46,8 @@ setCamera( Ogre::Camera* camera, Ogre::SceneNode* floor )
     for( Ogre::Node* follower: followers )
       old->removeChild( follower );
   } // end if
+
+  // Position in the floor's local (scaled) units; direction without scale
   Ogre::Vector3 pos = floor->convertWorldToLocalPosition( worldPos );
   Ogre::Vector3 dir
     =
@@ -57,6 +60,10 @@ setCamera( Ogre::Camera* camera, Ogre::SceneNode* floor )
   } // end if
   this->m_Floor = floor;
   this->m_Body = floor->createChildSceneNode( );
+
+  // The floor's scale must not stretch the player, the camera, or anything
+  // attached to them
+  this->m_Body->setInheritScale( false );
   this->m_Head = this->m_Body->createChildSceneNode( );
   this->m_Head->attachObject( camera );
   this->m_Camera = camera;
@@ -73,10 +80,35 @@ setCamera( Ogre::Camera* camera, Ogre::SceneNode* floor )
     );
   this->_applyOrientation( );
 
-  this->m_Body->setPosition( pos.x, this->m_EyeHeight, pos.z );
+  // From the floor's local units to world units along the floor's axes
+  const Ogre::Vector3 scale = this->_floorScale( );
+  this->m_Pos =
+    Ogre::Vector3( pos.x * scale.x, this->m_EyeHeight, pos.z * scale.z );
   this->m_VerticalSpeed = 0;
   this->m_Bounds = this->_floorBounds( floor );
   this->_clampToFloor( );
+  this->_applyPosition( );
+}
+
+// -------------------------------------------------------------------------
+void pujOgre::FPSCamera::
+setPosition( Ogre::Real x, Ogre::Real z, Ogre::Radian yaw )
+{
+  this->m_Pos = Ogre::Vector3( x, this->m_EyeHeight, z );
+  this->m_VerticalSpeed = 0;
+  this->m_Yaw = yaw;
+  this->_applyOrientation( );
+  this->_clampToFloor( );
+  this->_applyPosition( );
+}
+
+// -------------------------------------------------------------------------
+void pujOgre::FPSCamera::
+refreshFloorBounds( )
+{
+  this->m_Bounds = this->_floorBounds( this->m_Floor );
+  this->_clampToFloor( );
+  this->_applyPosition( );
 }
 
 // -------------------------------------------------------------------------
@@ -112,8 +144,8 @@ void pujOgre::FPSCamera::
 setEyeHeight( Ogre::Real h )
 {
   this->m_EyeHeight = h;
-  Ogre::Vector3 p = this->m_Body->getPosition( );
-  this->m_Body->setPosition( p.x, std::max( p.y, h ), p.z );
+  this->m_Pos.y = std::max( this->m_Pos.y, h );
+  this->_applyPosition( );
 }
 
 // -------------------------------------------------------------------------
@@ -165,6 +197,7 @@ setEdgeMargin( Ogre::Real margin )
 {
   this->m_EdgeMargin = margin;
   this->_clampToFloor( );
+  this->_applyPosition( );
 }
 
 // -------------------------------------------------------------------------
@@ -226,6 +259,7 @@ frameRendered( const Ogre::FrameEvent& evt )
     return;
   const Ogre::Real dt = std::min( evt.timeSinceLastFrame, 0.1f );
 
+  // Walk in the facing direction, flat on the floor, in world units
   Ogre::Vector3 dir(
     Ogre::Real( this->m_Right - this->m_Left ), 0,
     Ogre::Real( this->m_Back - this->m_Forward )
@@ -233,24 +267,29 @@ frameRendered( const Ogre::FrameEvent& evt )
   if( dir.squaredLength( ) > 0 )
   {
     dir.normalise( );
-    this->m_Body->translate(
-      dir * ( ( this->m_Run )? this->m_RunSpeed: this->m_WalkSpeed ) * dt,
-      Ogre::Node::TS_LOCAL
-      );
+    this->m_Pos +=
+      Ogre::Quaternion( this->m_Yaw, Ogre::Vector3::UNIT_Y )
+      *
+      dir
+      *
+      ( ( this->m_Run )? this->m_RunSpeed: this->m_WalkSpeed ) * dt;
   } // end if
 
-  Ogre::Vector3 p = this->m_Body->getPosition( );
-  if( this->m_Jump && p.y <= this->m_EyeHeight + 1e-4f )
+  // Jump along the floor's up axis, falling back to eye height
+  if( this->m_Jump && this->m_Pos.y <= this->m_EyeHeight + 1e-4f )
     this->m_VerticalSpeed = this->m_JumpSpeed;
   this->m_VerticalSpeed -= this->m_Gravity * dt;
-  p.y += this->m_VerticalSpeed * dt;
-  if( p.y <= this->m_EyeHeight )
+  this->m_Pos.y += this->m_VerticalSpeed * dt;
+  if( this->m_Pos.y <= this->m_EyeHeight )
   {
-    p.y = this->m_EyeHeight;
+    this->m_Pos.y = this->m_EyeHeight;
     this->m_VerticalSpeed = 0;
   } // end if
-  this->m_Body->setPosition( p );
+
   this->_clampToFloor( );
+
+  // Every frame: follows the floor's scale, even if it changes
+  this->_applyPosition( );
 }
 
 // -------------------------------------------------------------------------
@@ -284,6 +323,31 @@ _applyOrientation( )
 }
 
 // -------------------------------------------------------------------------
+Ogre::Vector3 pujOgre::FPSCamera::
+_floorScale( ) const
+{
+  // World scale of the floor (all its parents included); never 0
+  Ogre::Vector3 s =
+    ( this->m_Floor )?
+    this->m_Floor->_getDerivedScale( ):
+    Ogre::Vector3::UNIT_SCALE;
+  for( int i = 0; i < 3; ++i )
+    if( std::abs( s[ i ] ) < 1e-6f )
+      s[ i ] = 1e-6f;
+  return( s );
+}
+
+// -------------------------------------------------------------------------
+void pujOgre::FPSCamera::
+_applyPosition( )
+{
+  // Ogre always multiplies a child's position by its parent's scale (even
+  // with inheritScale off), so divide by it to place the body in world units
+  if( this->m_Body )
+    this->m_Body->setPosition( this->m_Pos / this->_floorScale( ) );
+}
+
+// -------------------------------------------------------------------------
 Ogre::AxisAlignedBox pujOgre::FPSCamera::
 _floorBounds( Ogre::SceneNode* floor )
 {
@@ -298,26 +362,24 @@ _floorBounds( Ogre::SceneNode* floor )
 void pujOgre::FPSCamera::
 _clampToFloor( )
 {
-  if(
-    !this->m_Body
-    ||
-    this->m_Bounds.isNull( )
-    ||
-    this->m_Bounds.isInfinite( )
-    )
+  if( this->m_Bounds.isNull( ) || this->m_Bounds.isInfinite( ) )
     return;
+
+  // Floor bounds in world units (min/max: a negative scale mirrors the box)
+  const Ogre::Vector3 s = this->_floorScale( );
   const Ogre::Vector3
-    mn = this->m_Bounds.getMinimum( ),
-    mx = this->m_Bounds.getMaximum( );
+    a = this->m_Bounds.getMinimum( ) * s,
+    b = this->m_Bounds.getMaximum( ) * s;
+  const Ogre::Vector3
+    mn( std::min( a.x, b.x ), 0, std::min( a.z, b.z ) ),
+    mx( std::max( a.x, b.x ), 0, std::max( a.z, b.z ) );
   const Ogre::Real m = this->m_EdgeMargin;
-  Ogre::Vector3 p = this->m_Body->getPosition( );
-  p.x = std::clamp(
-    p.x, std::min( mn.x + m, mx.x - m ), std::max( mn.x + m, mx.x - m )
+  this->m_Pos.x = std::clamp(
+    this->m_Pos.x, std::min( mn.x + m, mx.x - m ), std::max( mn.x + m, mx.x - m )
     );
-  p.z = std::clamp(
-    p.z, std::min( mn.z + m, mx.z - m ), std::max( mn.z + m, mx.z - m )
+  this->m_Pos.z = std::clamp(
+    this->m_Pos.z, std::min( mn.z + m, mx.z - m ), std::max( mn.z + m, mx.z - m )
     );
-  this->m_Body->setPosition( p );
 }
 
 // eof - FPSCamera.cxx
